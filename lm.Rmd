@@ -14,8 +14,8 @@ theme_set(theme_minimal())
 # Task 1
 
 1. Load the dataset
-2. fit a linear model
-3. plot a scatterplot
+2. fit a linear model of charisma ~ avg.speed
+3. plot a scatterplot of that relationship
 
 ```{r charisma}
 charisma <- read_csv(here("data", "raw", "charisma.csv"))
@@ -35,16 +35,22 @@ charisma %>%
   geom_smooth(method = "lm") +
   NULL
 ```
+
 # Task 2
+
+Add as predictors extraversion & agreeableness.
 
 ```{r}
 lm_multiple <- lm(charisma ~ avg.speed + neo_extravert + neo_agreeable,
                   data = charisma)
 pander(lm_multiple)
-anova(lm_single, lm_multiple)
+anova(lm_single, lm_multiple) %>% 
+  pander()
 ```
 
 # Task 3
+
+Fit the model only to native speakers.
 
 ```{r}
 lm_native <- lm(charisma ~ avg.speed, data = charisma %>% 
