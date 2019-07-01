@@ -1,4 +1,4 @@
-# hu_ml read huuml
+# Machine Learning Seminar @ HU
 
 <!-- badges: start -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
