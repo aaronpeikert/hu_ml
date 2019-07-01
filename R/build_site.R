@@ -8,4 +8,4 @@ rmarkdown::render_site(here())
 #----commit---
 add(here(), here("docs"))
 commit(here(), "update site")
-push(here())
+# push() # doesn't work with ssh

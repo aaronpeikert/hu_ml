@@ -5,5 +5,6 @@ data/raw/%.csv: R/get_data.R
 
 .PHONY: publish
 
-publish: build_site.R
-	R/build_site.R
+# does not render due to bug in rmarkdown
+#publish: build_site.R
+#	R/build_site.R
