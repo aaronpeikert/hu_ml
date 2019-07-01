@@ -1,0 +1,6 @@
+.Rproj.user
+*.html
+*.pdf
+supplement/
+.Rhistory
+.RData
