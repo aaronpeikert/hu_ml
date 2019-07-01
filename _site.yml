@@ -7,4 +7,8 @@ navbar:
   righ:
     - icon: fab fa-github
       href: https://github.com/aaronpeikert/hu_ml
+    - text: "Models:"
+      menu:
+        - text: "Linear Model"
+          href: "lm.html"
 output: distill::distill_article
