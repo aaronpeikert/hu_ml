@@ -1314,8 +1314,8 @@ Models:
 <h1 id="task-1">Task 1</h1>
 <ol type="1">
 <li>Load the dataset</li>
-<li>fit a linear model</li>
-<li>plot a scatterplot</li>
+<li>fit a linear model of charisma ~ avg.speed</li>
+<li>plot a scatterplot of that relationship</li>
 </ol>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
@@ -1373,6 +1373,7 @@ charisma %&gt;%
 <p><img src="lm_files/figure-html5/unnamed-chunk-2-1.png" width="624" /></p>
 </div>
 <h1 id="task-2">Task 2</h1>
+<p>Add as predictors extraversion &amp; agreeableness.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
 lm_multiple &lt;- lm(charisma ~ avg.speed + neo_extravert + neo_agreeable,
@@ -1428,17 +1429,50 @@ pander(lm_multiple)</code></pre>
 </tbody>
 </table>
 <pre class="r"><code>
-anova(lm_single, lm_multiple)</code></pre>
-<pre><code>
-Analysis of Variance Table
-
-Model 1: charisma ~ avg.speed
-Model 2: charisma ~ avg.speed + neo_extravert + neo_agreeable
-  Res.Df    RSS Df Sum of Sq      F Pr(&gt;F)
-1    211 48.298                           
-2    209 47.512  2   0.78573 1.7282 0.1801</code></pre>
+anova(lm_single, lm_multiple) %&gt;% 
+  pander()</code></pre>
+<table style="width:71%;">
+<caption>Analysis of Variance Table</caption>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 11%" />
+<col style="width: 6%" />
+<col style="width: 16%" />
+<col style="width: 11%" />
+<col style="width: 12%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Res.Df</th>
+<th style="text-align: center;">RSS</th>
+<th style="text-align: center;">Df</th>
+<th style="text-align: center;">Sum of Sq</th>
+<th style="text-align: center;">F</th>
+<th style="text-align: center;">Pr(&gt;F)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">211</td>
+<td style="text-align: center;">48.3</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">209</td>
+<td style="text-align: center;">47.51</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0.7857</td>
+<td style="text-align: center;">1.728</td>
+<td style="text-align: center;">0.1801</td>
+</tr>
+</tbody>
+</table>
 </div>
 <h1 id="task-3">Task 3</h1>
+<p>Fit the model only to native speakers.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
 lm_native &lt;- lm(charisma ~ avg.speed, data = charisma %&gt;% 
