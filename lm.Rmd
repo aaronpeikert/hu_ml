@@ -68,3 +68,13 @@ charisma %>%
   NULL
 ```
 
+# Task 4
+
+Calculate standardized coefizients.
+
+```{r}
+lm_standard <- lm(charisma ~ avg.speed,
+                  data = mutate_all(charisma, scale))
+pander(lm_standard)
+```
+
