@@ -7,6 +7,8 @@ navbar:
   right:
     - icon: fab fa-github
       href: https://github.com/aaronpeikert/hu_ml
+    - text: "Model Selection"
+      href: selection.html
     - text: "Models:"
       menu:
         - text: "Linear Model"

@@ -1,0 +1,13 @@
+---
+title: "Model Selection"
+description: |
+  Personally I think model selection is the single most important topic in ML. Sadly we had only one session about it, however I might extend this topic beyond the seminars scope, becouse this is where `tidymodels` really shines.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if(!require("pacman"))install.packages("pacman")
+pacman::p_load("here", "fs", "tidyverse", "tidymodels", "pander")
+theme_set(theme_minimal())
+```
+
