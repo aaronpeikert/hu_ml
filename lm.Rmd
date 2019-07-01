@@ -17,9 +17,10 @@ theme_set(theme_minimal())
 2. fit a linear model of charisma ~ avg.speed
 3. plot a scatterplot of that relationship
 
-```{r charisma}
+```{r charisma, layout="l-body-outset"}
 charisma <- read_csv(here("data", "raw", "charisma.csv"))
 charisma <- charisma %>% filter(., complete.cases(.))
+rmarkdown::paged_table(charisma)
 ```
 
 ```{r}
@@ -27,7 +28,7 @@ lm_single <- lm(charisma ~ avg.speed, data = charisma)
 pander(lm_single)
 ```
 
-```{r}
+```{r, layout="l-body-outset"}
 charisma %>% 
   filter(., complete.cases(.)) %>% 
   ggplot(aes(charisma, avg.speed)) +
@@ -58,7 +59,7 @@ lm_native <- lm(charisma ~ avg.speed, data = charisma %>%
 pander(lm_native)
 ```
 
-```{r}
+```{r, layout="l-body-outset"}
 charisma %>% 
   ggplot(aes(charisma, avg.speed)) + 
   geom_point() +
