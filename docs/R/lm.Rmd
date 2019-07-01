@@ -1,0 +1,63 @@
+---
+title: "Linear Model"
+description: |
+  The first session was about linear models. We fitted some onto a dataset from Hippel et al (2015). Here we do not much of `tidymodel`.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if(!require("pacman"))install.packages("pacman")
+pacman::p_load("here", "fs", "tidyverse", "tidymodels", "pander")
+theme_set(theme_minimal())
+```
+
+# Task 1
+
+1. Load the dataset
+2. fit a linear model
+3. plot a scatterplot
+
+```{r charisma}
+charisma <- read_csv(here("data", "raw", "charisma.csv"))
+charisma <- charisma %>% filter(., complete.cases(.))
+```
+
+```{r}
+lm_single <- lm(charisma ~ avg.speed, data = charisma)
+pander(lm_single)
+```
+
+```{r}
+charisma %>% 
+  filter(., complete.cases(.)) %>% 
+  ggplot(aes(charisma, avg.speed)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  NULL
+```
+# Task 2
+
+```{r}
+lm_multiple <- lm(charisma ~ avg.speed + neo_extravert + neo_agreeable,
+                  data = charisma)
+pander(lm_multiple)
+anova(lm_single, lm_multiple)
+```
+
+# Task 3
+
+```{r}
+lm_native <- lm(charisma ~ avg.speed, data = charisma %>% 
+                  filter(target.language == 0))
+pander(lm_native)
+```
+
+```{r}
+charisma %>% 
+  ggplot(aes(charisma, avg.speed)) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap(~target.language) +
+  NULL
+```
+
