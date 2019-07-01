@@ -1,0 +1,10 @@
+name: "https://aaronpeikert.github.io/hu_ml"
+title: "Machine Learning Seminar @ HU"
+description: |
+  Machine Learning Seminar @ HU
+output_dir: "docs"
+navbar:
+  righ:
+    - icon: fab fa-github
+      href: https://github.com/aaronpeikert/hu_ml
+output: distill::distill_article

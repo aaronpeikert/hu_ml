@@ -1,0 +1,18 @@
+---
+title: "Machine Learning Seminar HU"
+description: |
+  This is the machine learning seminar of Andreas Brandmaier at the HU Berlin in `tidymodels`. Hope you enjoy! 
+site: distill::distill_website
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+# Learn more about creating websites with Distill at:
+# https://rstudio.github.io/distill/website.html
+
+```
+
+This is the attempt to redo all exercises of the seminar about machine learning of Andreas Brandmaier named "Trends in der Psychologischen Methodenlehre" in `tidymodels`. The result is supposed to be a set of scripts/markdowns that give a nice overview of all used models and techniques with a unified interface.
+
+You can find all source code + data neccesary to build this site on [github](https://github.com/aaronpeikert/hu_ml).
