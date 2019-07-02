@@ -19,29 +19,29 @@
  <!--/radix_placeholder_import_source-->
 
   <!--radix_placeholder_meta_tags-->
-  <title>Machine Learning Seminar @ HU: Linear Model</title>
+  <title>Machine Learning Seminar @ HU: Model Selection</title>
   
-  <meta property="description" itemprop="description" content="The first session was about linear models. We fitted some onto a dataset from Hippel et al (2015). Here we do not much of `tidymodel`."/>
+  <meta property="description" itemprop="description" content="Personally I think model selection is the single most important topic in ML. Sadly we had only one session about it, however I might extend this topic beyond the seminars scope, becouse this is where `tidymodels` really shines."/>
   
   
   
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
-  <meta property="og:title" content="Machine Learning Seminar @ HU: Linear Model"/>
+  <meta property="og:title" content="Machine Learning Seminar @ HU: Model Selection"/>
   <meta property="og:type" content="article"/>
-  <meta property="og:description" content="The first session was about linear models. We fitted some onto a dataset from Hippel et al (2015). Here we do not much of `tidymodel`."/>
+  <meta property="og:description" content="Personally I think model selection is the single most important topic in ML. Sadly we had only one session about it, however I might extend this topic beyond the seminars scope, becouse this is where `tidymodels` really shines."/>
   <meta property="og:locale" content="en_US"/>
   <meta property="og:site_name" content="Machine Learning Seminar @ HU"/>
   
   <!--  https://dev.twitter.com/cards/types/summary -->
   <meta property="twitter:card" content="summary"/>
-  <meta property="twitter:title" content="Machine Learning Seminar @ HU: Linear Model"/>
-  <meta property="twitter:description" content="The first session was about linear models. We fitted some onto a dataset from Hippel et al (2015). Here we do not much of `tidymodel`."/>
+  <meta property="twitter:title" content="Machine Learning Seminar @ HU: Model Selection"/>
+  <meta property="twitter:description" content="Personally I think model selection is the single most important topic in ML. Sadly we had only one session about it, however I might extend this topic beyond the seminars scope, becouse this is where `tidymodels` really shines."/>
   
   <!--/radix_placeholder_meta_tags-->
   <!--radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description"]}},"value":[{"type":"character","attributes":{},"value":["Linear Model"]},{"type":"character","attributes":{},"value":["The first session was about linear models. We fitted some onto a dataset from Hippel et al (2015). Here we do not much of `tidymodel`."]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description"]}},"value":[{"type":"character","attributes":{},"value":["Model Selection"]},{"type":"character","attributes":{},"value":["Personally I think model selection is the single most important topic in ML. Sadly we had only one session about it, however I might extend this topic beyond the seminars scope, becouse this is where `tidymodels` really shines."]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   <!--radix_placeholder_navigation_in_header-->
@@ -1274,7 +1274,7 @@
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"Linear Model","description":"The first session was about linear models. We fitted some onto a dataset from Hippel et al (2015). Here we do not much of `tidymodel`.","authors":[]}
+{"title":"Model Selection","description":"Personally I think model selection is the single most important topic in ML. Sadly we had only one session about it, however I might extend this topic beyond the seminars scope, becouse this is where `tidymodels` really shines.","authors":[]}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -1308,17 +1308,15 @@ Models:
 <!--/radix_placeholder_site_before_body-->
 
 <div class="d-title">
-<h1>Linear Model</h1>
-<p>The first session was about linear models. We fitted some onto a dataset from Hippel et al (2015). Here we do not much of <code>tidymodel</code>.</p>
+<h1>Model Selection</h1>
+<p>Personally I think model selection is the single most important topic in ML. Sadly we had only one session about it, however I might extend this topic beyond the seminars scope, becouse this is where <code>tidymodels</code> really shines.</p>
 </div>
 
 
 <div class="d-article">
 <h1 id="task-1">Task 1</h1>
 <ol type="1">
-<li>Load the dataset</li>
-<li>fit a linear model of charisma ~ avg.speed</li>
-<li>plot a scatterplot of that relationship</li>
+<li>Load charisma</li>
 </ol>
 <div class="layout-chunk" data-layout="l-body-outset">
 <pre class="r"><code>
@@ -1331,6 +1329,9 @@ rmarkdown::paged_table(charisma)</code></pre>
   </script>
 </div>
 </div>
+<ol start="2" type="1">
+<li>Repeat the linear model also found in <a href="lm.html">Linear Model</a>.</li>
+</ol>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
 lm_single &lt;- lm(charisma ~ avg.speed, data = charisma)
@@ -1371,130 +1372,96 @@ pander(lm_single)</code></pre>
 </tbody>
 </table>
 </div>
+<ol start="3" type="1">
+<li>Predict for <code>avg.speed=c(0,1,2,3,4,5)</code> and plot.</li>
+</ol>
 <div class="layout-chunk" data-layout="l-body-outset">
 <pre class="r"><code>
-charisma %&gt;% 
-  filter(., complete.cases(.)) %&gt;% 
-  ggplot(aes(charisma, avg.speed)) +
-  geom_point() +
-  geom_smooth(method = &quot;lm&quot;) +
-  NULL</code></pre>
-<p><img src="lm_files/figure-html5/unnamed-chunk-2-1.png" width="624" /></p>
+avg.speed &lt;- c(0,1,2,3,4,5)
+predictions &lt;- predict(lm_single, newdata = data.frame(avg.speed=avg.speed))
+qplot(predictions, avg.speed)</code></pre>
+<p><img src="selection_files/figure-html5/unnamed-chunk-2-1.png" width="624" /></p>
 </div>
 <h1 id="task-2">Task 2</h1>
-<p>Add as predictors extraversion &amp; agreeableness.</p>
+<ol type="1">
+<li>Write a function which calculates the sum of squares.</li>
+</ol>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-lm_multiple &lt;- lm(charisma ~ avg.speed + neo_extravert + neo_agreeable,
-                  data = charisma)
-pander(lm_multiple)</code></pre>
-<table style="width:92%;">
-<caption>Fitting linear model: charisma ~ avg.speed + neo_extravert + neo_agreeable</caption>
-<colgroup>
-<col style="width: 27%" />
-<col style="width: 15%" />
-<col style="width: 18%" />
-<col style="width: 13%" />
-<col style="width: 16%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: center;"> </th>
-<th style="text-align: center;">Estimate</th>
-<th style="text-align: center;">Std. Error</th>
-<th style="text-align: center;">t value</th>
-<th style="text-align: center;">Pr(&gt;|t|)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;"><strong>(Intercept)</strong></td>
-<td style="text-align: center;">4.069</td>
-<td style="text-align: center;">0.2883</td>
-<td style="text-align: center;">14.11</td>
-<td style="text-align: center;">3.249e-32</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;"><strong>avg.speed</strong></td>
-<td style="text-align: center;">-0.1289</td>
-<td style="text-align: center;">0.04558</td>
-<td style="text-align: center;">-2.828</td>
-<td style="text-align: center;">0.00514</td>
-</tr>
-<tr class="odd">
-<td style="text-align: center;"><strong>neo_extravert</strong></td>
-<td style="text-align: center;">-0.03121</td>
-<td style="text-align: center;">0.05791</td>
-<td style="text-align: center;">-0.539</td>
-<td style="text-align: center;">0.5905</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;"><strong>neo_agreeable</strong></td>
-<td style="text-align: center;">-0.1095</td>
-<td style="text-align: center;">0.06549</td>
-<td style="text-align: center;">-1.672</td>
-<td style="text-align: center;">0.09596</td>
-</tr>
-</tbody>
-</table>
+rss &lt;- function(y, yhat)(y-yhat)^2</code></pre>
+</div>
+<ol start="2" type="1">
+<li>Write a function which calculates the mean squared error.</li>
+</ol>
+<div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-anova(lm_single, lm_multiple) %&gt;% 
-  pander()</code></pre>
-<table style="width:71%;">
-<caption>Analysis of Variance Table</caption>
-<colgroup>
-<col style="width: 12%" />
-<col style="width: 11%" />
-<col style="width: 6%" />
-<col style="width: 16%" />
-<col style="width: 11%" />
-<col style="width: 12%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: center;">Res.Df</th>
-<th style="text-align: center;">RSS</th>
-<th style="text-align: center;">Df</th>
-<th style="text-align: center;">Sum of Sq</th>
-<th style="text-align: center;">F</th>
-<th style="text-align: center;">Pr(&gt;F)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;">211</td>
-<td style="text-align: center;">48.3</td>
-<td style="text-align: center;">NA</td>
-<td style="text-align: center;">NA</td>
-<td style="text-align: center;">NA</td>
-<td style="text-align: center;">NA</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;">209</td>
-<td style="text-align: center;">47.51</td>
-<td style="text-align: center;">2</td>
-<td style="text-align: center;">0.7857</td>
-<td style="text-align: center;">1.728</td>
-<td style="text-align: center;">0.1801</td>
-</tr>
-</tbody>
-</table>
+rmse &lt;- function(y, yhat)rss(y, hat)/length(y)</code></pre>
+</div>
+<ol start="3" type="1">
+<li>Test the functions.</li>
+</ol>
+<p>I’ll delete both and rely on the <code>yardstick</code> package, then I don’t need testing. I trust Max Kuhn has implemented the rmse correctly :)</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+rm(rmse, rss)</code></pre>
 </div>
 <h1 id="task-3">Task 3</h1>
-<p>Fit the model only to native speakers.</p>
+<ol type="1">
+<li>Load <code>simulation1.csv</code>.</li>
+</ol>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-lm_native &lt;- lm(charisma ~ avg.speed, data = charisma %&gt;% 
-                  filter(target.language == 0))
-pander(lm_native)</code></pre>
-<table style="width:90%;">
-<caption>Fitting linear model: charisma ~ avg.speed</caption>
+simulation1 &lt;- read_csv(here(&quot;data&quot;, &quot;raw&quot;, &quot;simulation1.csv&quot;))</code></pre>
+</div>
+<p>Note this is <strong>not</strong> the data used in the seminar, however it should be similar.</p>
+<ol start="2" type="1">
+<li>Plot <code>x</code> and <code>y</code>.</li>
+</ol>
+<div class="layout-chunk" data-layout="l-body-outset">
+<pre class="r"><code>
+ggplot(simulation1, aes(x, y)) + geom_point()</code></pre>
+<p><img src="selection_files/figure-html5/unnamed-chunk-7-1.png" width="624" /></p>
+</div>
+<ol start="3" type="1">
+<li>Fit a series of polynomials:
+<ol type="1">
+<li><span class="math inline">\(y = 1\)</span></li>
+<li><span class="math inline">\(y = 1 + x\)</span></li>
+<li><span class="math inline">\(y = 1 + x + x^2\)</span></li>
+<li><span class="math inline">\(y = 1 + x + x^2 + x^3\)</span></li>
+<li><span class="math inline">\(y = 1 + x + x^2 + x^3 + x^4\)</span></li>
+</ol></li>
+</ol>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+forms &lt;- list(y ~ 1,
+              y ~ 1 + x,
+              y ~ 1 + x + I(x^2),
+              y ~ 1 + x + I(x^2) + I(x^3),
+              y ~ 1 + x + I(x^2) + I(x^3) + I(x^4))
+
+# name them according to there terms
+names(forms) &lt;- map(forms, as.character) %&gt;% map_chr(3)
+
+# ignore the following function, you can also use plain lm
+# but this function makes the supplied formula transparent
+transparent_lm &lt;- function(formula, data, ...){
+  eval(bquote(lm(formula = .(formula), data = data, ...)))
+}
+
+lms &lt;- map(forms, transparent_lm, simulation1)
+
+pander(lms)</code></pre>
+<ul>
+<li><p><strong>1</strong>:</p>
+<table style="width:88%;">
+<caption>Fitting linear model: y ~ 1</caption>
 <colgroup>
 <col style="width: 25%" />
 <col style="width: 15%" />
 <col style="width: 18%" />
 <col style="width: 13%" />
-<col style="width: 18%" />
+<col style="width: 15%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -1508,73 +1475,503 @@ pander(lm_native)</code></pre>
 <tbody>
 <tr class="odd">
 <td style="text-align: center;"><strong>(Intercept)</strong></td>
-<td style="text-align: center;">3.554</td>
-<td style="text-align: center;">0.03646</td>
-<td style="text-align: center;">97.5</td>
-<td style="text-align: center;">2.031e-156</td>
+<td style="text-align: center;">0.1263</td>
+<td style="text-align: center;">0.131</td>
+<td style="text-align: center;">0.9641</td>
+<td style="text-align: center;">0.3397</td>
+</tr>
+</tbody>
+</table></li>
+<li><p><strong>1 + x</strong>:</p>
+<table style="width:88%;">
+<caption>Fitting linear model: y ~ 1 + x</caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 15%" />
+<col style="width: 18%" />
+<col style="width: 13%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;"> </th>
+<th style="text-align: center;">Estimate</th>
+<th style="text-align: center;">Std. Error</th>
+<th style="text-align: center;">t value</th>
+<th style="text-align: center;">Pr(&gt;|t|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>(Intercept)</strong></td>
+<td style="text-align: center;">0.1405</td>
+<td style="text-align: center;">0.1232</td>
+<td style="text-align: center;">1.141</td>
+<td style="text-align: center;">0.2595</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;"><strong>avg.speed</strong></td>
-<td style="text-align: center;">-0.1333</td>
-<td style="text-align: center;">0.05144</td>
-<td style="text-align: center;">-2.592</td>
-<td style="text-align: center;">0.01034</td>
+<td style="text-align: center;"><strong>x</strong></td>
+<td style="text-align: center;">0.1416</td>
+<td style="text-align: center;">0.05173</td>
+<td style="text-align: center;">2.737</td>
+<td style="text-align: center;">0.008674</td>
+</tr>
+</tbody>
+</table></li>
+<li><p><strong>1 + x + I(x^2)</strong>:</p>
+<table style="width:88%;">
+<caption>Fitting linear model: y ~ 1 + x + I(x^2)</caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 15%" />
+<col style="width: 18%" />
+<col style="width: 13%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;"> </th>
+<th style="text-align: center;">Estimate</th>
+<th style="text-align: center;">Std. Error</th>
+<th style="text-align: center;">t value</th>
+<th style="text-align: center;">Pr(&gt;|t|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>(Intercept)</strong></td>
+<td style="text-align: center;">0.2036</td>
+<td style="text-align: center;">0.1473</td>
+<td style="text-align: center;">1.383</td>
+<td style="text-align: center;">0.1733</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>x</strong></td>
+<td style="text-align: center;">0.1481</td>
+<td style="text-align: center;">0.05258</td>
+<td style="text-align: center;">2.816</td>
+<td style="text-align: center;">0.007092</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>I(x^2)</strong></td>
+<td style="text-align: center;">-0.01101</td>
+<td style="text-align: center;">0.01397</td>
+<td style="text-align: center;">-0.7884</td>
+<td style="text-align: center;">0.4344</td>
+</tr>
+</tbody>
+</table></li>
+<li><p><strong>1 + x + I(x^2) + I(x^3)</strong>:</p>
+<table style="width:89%;">
+<caption>Fitting linear model: y ~ 1 + x + I(x^2) + I(x^3)</caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 16%" />
+<col style="width: 18%" />
+<col style="width: 13%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;"> </th>
+<th style="text-align: center;">Estimate</th>
+<th style="text-align: center;">Std. Error</th>
+<th style="text-align: center;">t value</th>
+<th style="text-align: center;">Pr(&gt;|t|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>(Intercept)</strong></td>
+<td style="text-align: center;">0.1803</td>
+<td style="text-align: center;">0.1518</td>
+<td style="text-align: center;">1.188</td>
+<td style="text-align: center;">0.241</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>x</strong></td>
+<td style="text-align: center;">0.1932</td>
+<td style="text-align: center;">0.08346</td>
+<td style="text-align: center;">2.315</td>
+<td style="text-align: center;">0.02515</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>I(x^2)</strong></td>
+<td style="text-align: center;">-0.004907</td>
+<td style="text-align: center;">0.01654</td>
+<td style="text-align: center;">-0.2966</td>
+<td style="text-align: center;">0.7681</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>I(x^3)</strong></td>
+<td style="text-align: center;">-0.002448</td>
+<td style="text-align: center;">0.003504</td>
+<td style="text-align: center;">-0.6988</td>
+<td style="text-align: center;">0.4882</td>
+</tr>
+</tbody>
+</table></li>
+<li><p><strong>1 + x + I(x^2) + I(x^3) + I(x^4)</strong>:</p>
+<table style="width:92%;">
+<caption>Fitting linear model: y ~ 1 + x + I(x^2) + I(x^3) + I(x^4)</caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;"> </th>
+<th style="text-align: center;">Estimate</th>
+<th style="text-align: center;">Std. Error</th>
+<th style="text-align: center;">t value</th>
+<th style="text-align: center;">Pr(&gt;|t|)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><strong>(Intercept)</strong></td>
+<td style="text-align: center;">0.1705</td>
+<td style="text-align: center;">0.1811</td>
+<td style="text-align: center;">0.941</td>
+<td style="text-align: center;">0.3517</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>x</strong></td>
+<td style="text-align: center;">0.1904</td>
+<td style="text-align: center;">0.0887</td>
+<td style="text-align: center;">2.146</td>
+<td style="text-align: center;">0.03726</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>I(x^2)</strong></td>
+<td style="text-align: center;">-0.001177</td>
+<td style="text-align: center;">0.04012</td>
+<td style="text-align: center;">-0.02934</td>
+<td style="text-align: center;">0.9767</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><strong>I(x^3)</strong></td>
+<td style="text-align: center;">-0.002134</td>
+<td style="text-align: center;">0.004689</td>
+<td style="text-align: center;">-0.4552</td>
+<td style="text-align: center;">0.6511</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><strong>I(x^4)</strong></td>
+<td style="text-align: center;">-0.0001108</td>
+<td style="text-align: center;">0.001084</td>
+<td style="text-align: center;">-0.1023</td>
+<td style="text-align: center;">0.919</td>
+</tr>
+</tbody>
+</table></li>
+</ul>
+<!-- end of list -->
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+evaluation &lt;- lms %&gt;%
+  map_dfr(augment, .id = &quot;term&quot;) %&gt;%
+  group_by(term)
+
+pander(rmse(evaluation, y, .fitted), caption = &quot;RMSE on full data&quot;)</code></pre>
+<table style="width:89%;">
+<caption>RMSE on full data</caption>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 13%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">term</th>
+<th style="text-align: center;">.metric</th>
+<th style="text-align: center;">.estimator</th>
+<th style="text-align: center;">.estimate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.9167</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1 + x</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.8526</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1 + x + I(x^2)</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.847</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1 + x + I(x^2) + I(x^3)</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.8425</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1 + x + I(x^2) + I(x^3) + I(x^4)</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.8424</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>
+pander(rsq_trad(evaluation, y, .fitted), caption = &quot;R-square on full data&quot;)</code></pre>
+<table style="width:90%;">
+<caption>R-square on full data</caption>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 15%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">term</th>
+<th style="text-align: center;">.metric</th>
+<th style="text-align: center;">.estimator</th>
+<th style="text-align: center;">.estimate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">rsq_trad</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1 + x</td>
+<td style="text-align: center;">rsq_trad</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.135</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1 + x + I(x^2)</td>
+<td style="text-align: center;">rsq_trad</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.1463</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1 + x + I(x^2) + I(x^3)</td>
+<td style="text-align: center;">rsq_trad</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.1552</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1 + x + I(x^2) + I(x^3) + I(x^4)</td>
+<td style="text-align: center;">rsq_trad</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.1554</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="task-4">Task 4</h1>
+<ol type="1">
+<li>Split the data in 50/50 test- and trainingset.</li>
+</ol>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+split &lt;- initial_split(simulation1, 1/2)</code></pre>
+</div>
+<ol start="2" type="1">
+<li>Refit models on trainingset and evaluate on testset.</li>
+</ol>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+# note, this is the exact same code as before with two differences:
+# 1. it is in one pipe
+# 2. it uses testing(split) &amp; training(split) as data arguments
+evaluation_test &lt;- map(forms, transparent_lm, data = training(split)) %&gt;%
+  map_dfr(augment, newdata = testing(split), .id = &quot;term&quot;) %&gt;%
+  group_by(term)
+pander(rmse(evaluation_test, y, .fitted), caption = &quot;RMSE on test&quot;)</code></pre>
+<table style="width:89%;">
+<caption>RMSE on test</caption>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 13%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">term</th>
+<th style="text-align: center;">.metric</th>
+<th style="text-align: center;">.estimator</th>
+<th style="text-align: center;">.estimate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">1.073</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1 + x</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">1.013</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1 + x + I(x^2)</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">1.012</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1 + x + I(x^2) + I(x^3)</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">6.027</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1 + x + I(x^2) + I(x^3) + I(x^4)</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">17.27</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>
+# same but evaluate on training
+
+evaluation_training &lt;- map(forms, transparent_lm, data = training(split)) %&gt;%
+  map_dfr(augment, newdata = training(split), .id = &quot;term&quot;) %&gt;%
+  group_by(term)
+
+pander(rmse(evaluation_training, y, .fitted), caption = &quot;RMSE on training&quot;)</code></pre>
+<table style="width:89%;">
+<caption>RMSE on training</caption>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 13%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">term</th>
+<th style="text-align: center;">.metric</th>
+<th style="text-align: center;">.estimator</th>
+<th style="text-align: center;">.estimate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.7564</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1 + x</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.7482</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1 + x + I(x^2)</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.7481</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">1 + x + I(x^2) + I(x^3)</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.5761</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">1 + x + I(x^2) + I(x^3) + I(x^4)</td>
+<td style="text-align: center;">rmse</td>
+<td style="text-align: center;">standard</td>
+<td style="text-align: center;">0.505</td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="layout-chunk" data-layout="l-body-outset">
 <pre class="r"><code>
-charisma %&gt;% 
-  ggplot(aes(charisma, avg.speed)) + 
-  geom_point() +
-  geom_smooth(method = &quot;lm&quot;) +
-  facet_wrap(~target.language) +
+bind_rows(testing = evaluation_test,
+          training = evaluation_training,
+          .id = &quot;sample&quot;) %&gt;% 
+  group_by(sample, term) %&gt;% 
+  rmse(y, .fitted) %&gt;% 
+  ggplot(aes(term, .estimate, group = sample, color = sample)) +
+  geom_line() + 
+  coord_flip() +
   NULL</code></pre>
-<p><img src="lm_files/figure-html5/unnamed-chunk-5-1.png" width="624" /></p>
+<p><img src="selection_files/figure-html5/unnamed-chunk-12-1.png" width="624" /></p>
 </div>
-<h1 id="task-4">Task 4</h1>
-<p>Calculate standardized coefizients.</p>
-<div class="layout-chunk" data-layout="l-body">
+<ol start="3" type="1">
+<li>Which is the best model?</li>
+</ol>
+<p>It is pretty clear (and if not it will be in the next plot), that all models fit bad. The best fitting model however is the <span class="math inline">\(y = 1 + x\)</span> model. That is to be expected because the data is generated by <span class="math inline">\(y = sin(x*1.5) + 0.2*x\)</span>.</p>
+<ol start="4" type="1">
+<li>Plot the predictions</li>
+</ol>
+<div class="layout-chunk" data-layout="l-body-outset">
 <pre class="r"><code>
-lm_standard &lt;- lm(charisma ~ avg.speed,
-                  data = mutate_all(charisma, scale))
-pander(lm_standard)</code></pre>
-<table style="width:94%;">
-<caption>Fitting linear model: charisma ~ avg.speed</caption>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 18%" />
-<col style="width: 18%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: center;"> </th>
-<th style="text-align: center;">Estimate</th>
-<th style="text-align: center;">Std. Error</th>
-<th style="text-align: center;">t value</th>
-<th style="text-align: center;">Pr(&gt;|t|)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;"><strong>(Intercept)</strong></td>
-<td style="text-align: center;">-3.596e-16</td>
-<td style="text-align: center;">0.06735</td>
-<td style="text-align: center;">-5.34e-15</td>
-<td style="text-align: center;">1</td>
-</tr>
-<tr class="even">
-<td style="text-align: center;"><strong>avg.speed</strong></td>
-<td style="text-align: center;">-0.196</td>
-<td style="text-align: center;">0.06751</td>
-<td style="text-align: center;">-2.903</td>
-<td style="text-align: center;">0.00409</td>
-</tr>
-</tbody>
-</table>
+map_dfr(lms,
+    augment,
+    newdata = tibble(x = seq(-7, 7, length.out = 300)),
+    .id = &quot;term&quot;) %&gt;% 
+  ggplot(aes(x, .fitted, group = term, color = term)) + 
+  geom_line() +
+  geom_point(aes(x, y), simulation1, inherit.aes = FALSE) +
+  ylab(&quot;y&quot;) +
+  NULL</code></pre>
+<p><img src="selection_files/figure-html5/unnamed-chunk-13-1.png" width="624" /></p>
+</div>
+<h1 id="task-5">Task 5</h1>
+<p>Implement five fold cross validation.</p>
+<div class="layout-chunk" data-layout="l-body-outset">
+<pre class="r"><code>
+cv5 &lt;- rsample::vfold_cv(simulation1, folds = 5, repeats = 1)
+
+evaluation_cv &lt;- 
+  crossing(cv5, terms = names(forms)) %&gt;% # all combinations of models + folds
+  mutate(forms = map(terms, ~forms[[.x]]), # get correct formula for model
+         lms = map2(forms, splits, ~transparent_lm(.x, analysis(.y))), # fit
+         pred = map2(lms, splits, # predict on unseen data aka assesment
+                     ~augment(.x, newdata = assessment(.y)))) %&gt;% 
+  group_by(id, terms) %&gt;% 
+  unnest(pred) %&gt;% 
+  rmse(y, .fitted)
+
+evaluation_cv %&gt;% 
+  ggplot(aes(id, .estimate, group = terms, color = terms)) +
+  geom_line() +
+  scale_y_log10() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  ylab(&quot;rmse&quot;) +
+  NULL</code></pre>
+<p><img src="selection_files/figure-html5/unnamed-chunk-14-1.png" width="624" /></p>
+<pre class="r"><code>
+evaluation_cv %&gt;% 
+  ggplot(aes(terms, .estimate)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  coord_flip() +
+  ylab(&quot;rmse&quot;) +
+  NULL</code></pre>
+<p><img src="selection_files/figure-html5/unnamed-chunk-14-2.png" width="624" /></p>
 </div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
@@ -1583,6 +1980,15 @@ pander(lm_standard)</code></pre>
 <div class="d-appendix">
 </div>
 
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
 
 <!--radix_placeholder_site_after_body-->
 <!--/radix_placeholder_site_after_body-->

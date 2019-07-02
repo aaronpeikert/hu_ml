@@ -6,6 +6,13 @@ pacman::p_load("here", "fs", "tidyverse")
 charisma <- read_csv(url("https://raw.githubusercontent.com/seanchrismurphy/A-Psychologists-Guide-to-R/master/Week%203/charisma%20data.csv"))
 write_csv(charisma, here("data", "raw", "charisma.csv"))
 
+#----simulation1----
+# I don't know what andreas has simulated, however it looked like a sin function
+n <- 50
+set.seed(020719)
+simulation1 <- tibble(x = rnorm(n, 0, 2),
+                      y = sin(x*1.5) + 0.2*x + rnorm(n, 0, .5))
+write_csv(simulation1, here("data", "raw", "simulation1.csv"))
 #----oasis----
 # this is not the original source!
 # orignally provided by http://www.oasis-brains.org
