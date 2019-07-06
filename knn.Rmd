@@ -1,0 +1,160 @@
+---
+title: "k-Nearest Neighbors"
+description: |
+  The third session was about k-nearest neighbors, we fitted them to the "OASIS Brain Projekt" data on dementia. Unlike the examples in the seminar, here "proper" hyperparamter optimization via cross validation is applied. The performance of the final model is then evaluated on a holdout set.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if(!require("pacman"))install.packages("pacman")
+pacman::p_load("here", "fs", "tidyverse", "tidymodels", "pander")
+theme_set(theme_minimal())
+source(here("R", "utils.R"))
+```
+
+# Task 1
+
+1. Load oasis data.
+
+```{r charisma, layout="l-body-outset"}
+oasis <- read_csv(here("data", "raw", "oasis.csv"))
+rmarkdown::paged_table(oasis)
+```
+
+2. Recode `CDR` into binary classes. Drop `Delay` (NA only), `Hand` (only "M") and `ID`. Rename `M/F` so it does not contain special characters.
+
+```{r}
+table(oasis$CDR)
+cdr_classes <- factor(c("no dimentia", "dimentia"))
+oasis <- oasis %>% filter(., complete.cases(.))
+oasis <- oasis %>%
+  mutate(CDRc = if_else(CDR == 0, cdr_classes[1], cdr_classes[2])) %>%
+  select(-CDR, -Delay, -Hand, -ID) %>% 
+  rename(sex = `M/F`)
+table(oasis$CDRc)
+```
+
+```{r}
+write_csv(oasis, here("data", "clean", "oasis.csv"))
+```
+
+3. Fit `knn` over `k = 3,5,7,9,11`.
+
+Originally the task was to evaluate the performance (accuracy) on a hold out, then again using the same holdout to compare different models. However here 10 folds 10 repeats stratified cross validation is used for the hyperparameter and a 1/4 holdout for model comparisen. Both stratified. This should give a unbiased estimate.
+
+The following code implements the spliting and crossvalidation (and sets a seed for reproducibility).
+
+```{r}
+set.seed(020719)
+split <- initial_split(oasis, 3/4, "CDRc")
+training <- training(split)
+assessment <- assessment(split)
+
+cv <- rsample::vfold_cv(training, v = 10, repeats = 10, strata = "CDRc")
+```
+
+We should implement the nearest neighbor algorythm and as the engine the `kknn` package.
+
+```{r}
+model <- nearest_neighbor(mode = "classification", neighbors = varying()) %>%
+  set_engine("kknn")
+```
+
+We set above `neighbors = varying()`, we fill this now and specify how the hyperparameter should look like. From that we build a grid over which to we then tune (aka `tune_grid`).
+
+```{r}
+neighbors <-  neighbors %>%
+  range_set(c(1, 100)) %>%
+  value_set(c(3, 5, 7, 9, 11))
+
+tune_grid <- grid_regular(neighbors, levels = Inf)
+```
+
+Now we bring the tune_grid and the model together.
+
+```{r}
+model_grid <- gen_model_grid(model, tune_grid)
+```
+
+Till now we have not specified what we want to predict from which predictors (which roles the variables have). Often we also want to somehow transform the variables, here we do dummy coding of nominal variables.
+
+```{r}
+recipe <- recipe(training) %>% 
+  update_role(CDRc, new_role = "outcome") %>% 
+  update_role(-all_outcomes(), new_role = "predictor") %>% 
+  step_dummy(all_nominal(), -all_outcomes())
+```
+
+The recipe relates to the data, so we need to apply it to all splits of the data.
+
+```{r}
+data_grid <- gen_data_grid(cv, recipe)
+```
+
+Now we bring the `data_grid` (recipes + sets) and the `model_grid` (model + hyperparamter). We want that every model is fit to every data combination. So a full cross.
+
+```{r}
+params <- crossing(model_grid, data_grid)
+```
+
+Now we can fit the specified models and make predictions on the unseen data. On that bases we can evaluate the models.
+
+```{r}
+evaluations <- fit_params(params)
+```
+
+Now we can evaluate how well model have performed e.g. accuracy or other measures.
+
+```{r}
+hyperparameter <- bind_rows(evaluations$grids)
+accuracy <- evaluations %>%
+  mutate(!!!hyperparameter) %>% 
+  unnest(predictions) %>% 
+  group_by(id, id2, neighbors) %>% 
+  accuracy(truth, estimate = .pred_class)
+```
+
+```{r}
+acc_plot <- accuracy %>% 
+  ggplot(aes(neighbors, .estimate, group = neighbors))
+
+acc_plot + geom_boxplot()
+
+acc_plot +
+  geom_violin() + 
+  geom_boxplot(width = .1) +
+  coord_flip() +
+  NULL
+```
+
+3. Fit the dataset on standaridized variables.
+
+In the seminar we were given a allready standardized dataset, however estimating the mean an variance, means we estimate things we do not account for in the cross validation. If we define the standardizing inside the `recipe` we account for that, because it is inside the cross validation.
+
+```{r}
+recipe_std <- recipe %>% 
+  step_center(all_predictors()) %>% 
+  step_scale(all_predictors())
+
+data_grid <- gen_data_grid(cv, list(unstd = recipe, std = recipe_std))
+
+params <- crossing(model_grid, data_grid)
+
+evaluations <- fit_params(params)
+
+hyperparameter <- bind_rows(evaluations$grids)
+accuracy <- evaluations %>%
+  mutate(!!!hyperparameter) %>% 
+  unnest(predictions) %>% 
+  group_by(id, id2, neighbors, id_recipe) %>% 
+  accuracy(truth, estimate = .pred_class)
+
+accuracy %>% 
+  ggplot(aes(neighbors, .estimate, group = neighbors)) +
+  geom_jitter() + 
+  geom_boxplot(alpha = .1) +
+  coord_flip() +
+  facet_wrap(~id_recipe, ncol = 1) +
+  NULL
+```
+
