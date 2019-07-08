@@ -1380,7 +1380,7 @@ pander(lm_single)</code></pre>
 avg.speed &lt;- c(0,1,2,3,4,5)
 predictions &lt;- predict(lm_single, newdata = data.frame(avg.speed=avg.speed))
 qplot(predictions, avg.speed)</code></pre>
-<p><img src="selection_files/figure-html5/unnamed-chunk-2-1.png" width="624" /></p>
+<p><img src="cluster_files/figure-html5/unnamed-chunk-49-1.png" width="624" /></p>
 </div>
 <h1 id="task-2">Task 2</h1>
 <ol type="1">
@@ -1420,7 +1420,7 @@ simulation1 &lt;- read_csv(here(&quot;data&quot;, &quot;raw&quot;, &quot;simulat
 <div class="layout-chunk" data-layout="l-body-outset">
 <pre class="r"><code>
 ggplot(simulation1, aes(x, y)) + geom_point()</code></pre>
-<p><img src="selection_files/figure-html5/unnamed-chunk-7-1.png" width="624" /></p>
+<p><img src="cluster_files/figure-html5/unnamed-chunk-54-1.png" width="624" /></p>
 </div>
 <ol start="3" type="1">
 <li>Fit a series of polynomials:
@@ -1917,7 +1917,7 @@ bind_rows(testing = evaluation_test,
   geom_line() + 
   coord_flip() +
   NULL</code></pre>
-<p><img src="selection_files/figure-html5/unnamed-chunk-12-1.png" width="624" /></p>
+<p><img src="cluster_files/figure-html5/unnamed-chunk-59-1.png" width="624" /></p>
 </div>
 <ol start="3" type="1">
 <li>Which is the best model?</li>
@@ -1937,7 +1937,7 @@ map_dfr(lms,
   geom_point(aes(x, y), simulation1, inherit.aes = FALSE) +
   ylab(&quot;y&quot;) +
   NULL</code></pre>
-<p><img src="selection_files/figure-html5/unnamed-chunk-13-1.png" width="624" /></p>
+<p><img src="cluster_files/figure-html5/unnamed-chunk-60-1.png" width="624" /></p>
 </div>
 <h1 id="task-5">Task 5</h1>
 <p>Implement five fold cross validation.</p>
@@ -1962,7 +1962,7 @@ evaluation_cv %&gt;%
   theme(axis.text.x = element_text(angle = 90)) +
   ylab(&quot;rmse&quot;) +
   NULL</code></pre>
-<p><img src="selection_files/figure-html5/unnamed-chunk-14-1.png" width="624" /></p>
+<p><img src="cluster_files/figure-html5/unnamed-chunk-61-1.png" width="624" /></p>
 <pre class="r"><code>
 evaluation_cv %&gt;% 
   ggplot(aes(terms, .estimate)) +
@@ -1971,7 +1971,7 @@ evaluation_cv %&gt;%
   coord_flip() +
   ylab(&quot;rmse&quot;) +
   NULL</code></pre>
-<p><img src="selection_files/figure-html5/unnamed-chunk-14-2.png" width="624" /></p>
+<p><img src="cluster_files/figure-html5/unnamed-chunk-61-2.png" width="624" /></p>
 </div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->

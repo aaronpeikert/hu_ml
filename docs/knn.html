@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1"/>
+  <meta name="generator" content="distill" />
+
+  <style type="text/css">
+  /* Hide doc at startup (prevent jankiness while JS renders/transforms) */
+  body {
+    visibility: hidden;
+  }
+  </style>
+
+ <!--radix_placeholder_import_source-->
+ <!--/radix_placeholder_import_source-->
+
+  <!--radix_placeholder_meta_tags-->
+  <title>Machine Learning Seminar @ HU: k-Nearest Neighbors</title>
+  
+  <meta property="description" itemprop="description" content="The third session was about k-nearest neighbors, we fitted them to the &quot;OASIS Brain Projekt&quot; data on dementia. Unlike the examples in the seminar, here &quot;proper&quot; hyperparamter optimization via cross validation is applied. The performance of the final model is then evaluated on a holdout set."/>
+  
+  
+  
+  <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
+  <meta property="og:title" content="Machine Learning Seminar @ HU: k-Nearest Neighbors"/>
+  <meta property="og:type" content="article"/>
+  <meta property="og:description" content="The third session was about k-nearest neighbors, we fitted them to the &quot;OASIS Brain Projekt&quot; data on dementia. Unlike the examples in the seminar, here &quot;proper&quot; hyperparamter optimization via cross validation is applied. The performance of the final model is then evaluated on a holdout set."/>
+  <meta property="og:locale" content="en_US"/>
+  <meta property="og:site_name" content="Machine Learning Seminar @ HU"/>
+  
+  <!--  https://dev.twitter.com/cards/types/summary -->
+  <meta property="twitter:card" content="summary"/>
+  <meta property="twitter:title" content="Machine Learning Seminar @ HU: k-Nearest Neighbors"/>
+  <meta property="twitter:description" content="The third session was about k-nearest neighbors, we fitted them to the &quot;OASIS Brain Projekt&quot; data on dementia. Unlike the examples in the seminar, here &quot;proper&quot; hyperparamter optimization via cross validation is applied. The performance of the final model is then evaluated on a holdout set."/>
+  
+  <!--/radix_placeholder_meta_tags-->
+  <!--radix_placeholder_rmarkdown_metadata-->
+  
+  <script type="text/json" id="radix-rmarkdown-metadata">
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description"]}},"value":[{"type":"character","attributes":{},"value":["k-Nearest Neighbors"]},{"type":"character","attributes":{},"value":["The third session was about k-nearest neighbors, we fitted them to the \"OASIS Brain Projekt\" data on dementia. Unlike the examples in the seminar, here \"proper\" hyperparamter optimization via cross validation is applied. The performance of the final model is then evaluated on a holdout set."]}]}
+  </script>
+  <!--/radix_placeholder_rmarkdown_metadata-->
+  <!--radix_placeholder_navigation_in_header-->
+  
+  <script type="application/javascript">
+  
+    window.headroom_prevent_pin = false;
+  
+    window.document.addEventListener("DOMContentLoaded", function (event) {
+  
+      // initialize headroom for banner
+      var header = $('header').get(0);
+      var headerHeight = header.offsetHeight;
+      var headroom = new Headroom(header, {
+        onPin : function() {
+          if (window.headroom_prevent_pin) {
+            window.headroom_prevent_pin = false;
+            headroom.unpin();
+          }
+        }
+      });
+      headroom.init();
+      if(window.location.hash)
+        headroom.unpin();
+      $(header).addClass('headroom--transition');
+  
+      // offset scroll location for banner on hash change
+      // (see: https://github.com/WickyNilliams/headroom.js/issues/38)
+      window.addEventListener("hashchange", function(event) {
+        window.scrollTo(0, window.pageYOffset - (headerHeight + 25));
+      });
+  
+      // responsive menu
+      $('.distill-site-header').each(function(i, val) {
+        var topnav = $(this);
+        var toggle = topnav.find('.nav-toggle');
+        toggle.on('click', function() {
+          topnav.toggleClass('responsive');
+        });
+      });
+  
+      // nav dropdowns
+      $('.nav-dropbtn').click(function(e) {
+        $(this).next('.nav-dropdown-content').toggleClass('nav-dropdown-active');
+        $(this).parent().siblings('.nav-dropdown')
+           .children('.nav-dropdown-content').removeClass('nav-dropdown-active');
+      });
+      $("body").click(function(e){
+        $('.nav-dropdown-content').removeClass('nav-dropdown-active');
+      });
+      $(".nav-dropdown").click(function(e){
+        e.stopPropagation();
+      });
+    });
+  </script>
+  
+  <style type="text/css">
+  
+  /* Theme (user-documented overrideables for nav appearance) */
+  
+  .distill-site-nav {
+    color: rgba(255, 255, 255, 0.8);
+    background-color: #455a64;
+    font-size: 15px;
+    font-weight: 300;
+  }
+  
+  .distill-site-nav a {
+    color: inherit;
+    text-decoration: none;
+  }
+  
+  .distill-site-nav a:hover {
+    color: white;
+  }
+  
+  @media print {
+    .distill-site-nav {
+      display: none;
+    }
+  }
+  
+  .distill-site-header {
+  
+  }
+  
+  .distill-site-footer {
+  
+  }
+  
+  
+  /* Site Header */
+  
+  .distill-site-header {
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 3;
+  }
+  
+  .distill-site-header .nav-left {
+    display: inline-block;
+    margin-left: 8px;
+  }
+  
+  @media screen and (max-width: 768px) {
+    .distill-site-header .nav-left {
+      margin-left: 0;
+    }
+  }
+  
+  
+  .distill-site-header .nav-right {
+    float: right;
+    margin-right: 8px;
+  }
+  
+  .distill-site-header a,
+  .distill-site-header .title {
+    display: inline-block;
+    text-align: center;
+    padding: 14px 10px 14px 10px;
+  }
+  
+  .distill-site-header .title {
+    font-size: 18px;
+  }
+  
+  .distill-site-header .logo {
+    padding: 0;
+  }
+  
+  .distill-site-header .logo img {
+    display: none;
+    max-height: 20px;
+    width: auto;
+    margin-bottom: -4px;
+  }
+  
+  .distill-site-header .nav-image img {
+    max-height: 18px;
+    width: auto;
+    display: inline-block;
+    margin-bottom: -3px;
+  }
+  
+  
+  
+  @media screen and (min-width: 1000px) {
+    .distill-site-header .logo img {
+      display: inline-block;
+    }
+    .distill-site-header .nav-left {
+      margin-left: 20px;
+    }
+    .distill-site-header .nav-right {
+      margin-right: 20px;
+    }
+    .distill-site-header .title {
+      padding-left: 12px;
+    }
+  }
+  
+  
+  .distill-site-header .nav-toggle {
+    display: none;
+  }
+  
+  .nav-dropdown {
+    display: inline-block;
+    position: relative;
+  }
+  
+  .nav-dropdown .nav-dropbtn {
+    border: none;
+    outline: none;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 16px 10px;
+    background-color: transparent;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    margin: 0;
+    margin-top: 1px;
+    z-index: 2;
+  }
+  
+  .nav-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 200px;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 4px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+    z-index: 1;
+    margin-top: 2px;
+    white-space: nowrap;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  
+  .nav-dropdown-content hr {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .nav-dropdown-active {
+    display: block;
+  }
+  
+  .nav-dropdown-content a, .nav-dropdown-content .nav-dropdown-header {
+    color: black;
+    padding: 6px 24px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+  }
+  
+  .nav-dropdown-content .nav-dropdown-header {
+    display: block;
+    padding: 5px 24px;
+    padding-bottom: 0;
+    text-transform: uppercase;
+    font-size: 14px;
+    color: #999999;
+    white-space: nowrap;
+  }
+  
+  .nav-dropdown:hover .nav-dropbtn {
+    color: white;
+  }
+  
+  .nav-dropdown-content a:hover {
+    background-color: #ddd;
+    color: black;
+  }
+  
+  .nav-right .nav-dropdown-content {
+    margin-left: -45%;
+    right: 0;
+  }
+  
+  @media screen and (max-width: 768px) {
+    .distill-site-header a, .distill-site-header .nav-dropdown  {display: none;}
+    .distill-site-header a.nav-toggle {
+      float: right;
+      display: block;
+    }
+    .distill-site-header .title {
+      margin-left: 0;
+    }
+    .distill-site-header .nav-right {
+      margin-right: 0;
+    }
+    .distill-site-header {
+      overflow: hidden;
+    }
+    .nav-right .nav-dropdown-content {
+      margin-left: 0;
+    }
+  }
+  
+  
+  @media screen and (max-width: 768px) {
+    .distill-site-header.responsive {position: relative;}
+    .distill-site-header.responsive a.nav-toggle {
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+    .distill-site-header.responsive a,
+    .distill-site-header.responsive .nav-dropdown {
+      display: block;
+      text-align: left;
+    }
+    .distill-site-header.responsive .nav-left,
+    .distill-site-header.responsive .nav-right {
+      width: 100%;
+    }
+    .distill-site-header.responsive .nav-dropdown {float: none;}
+    .distill-site-header.responsive .nav-dropdown-content {position: relative;}
+    .distill-site-header.responsive .nav-dropdown .nav-dropbtn {
+      display: block;
+      width: 100%;
+      text-align: left;
+    }
+  }
+  
+  /* Site Footer */
+  
+  .distill-site-footer {
+    width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    z-index: 3;
+    margin-top: 30px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    text-align: center;
+  }
+  
+  /* Headroom */
+  
+  d-title {
+    padding-top: 6rem;
+  }
+  
+  @media print {
+    d-title {
+      padding-top: 4rem;
+    }
+  }
+  
+  .headroom {
+    z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+  
+  .headroom--transition {
+    transition: all .4s ease-in-out;
+  }
+  
+  .headroom--unpinned {
+    top: -100px;
+  }
+  
+  .headroom--pinned {
+    top: 0;
+  }
+  
+  </style>
+  
+  <link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet"/>
+  <link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet"/>
+  <script src="site_libs/headroom-0.9.4/headroom.min.js"></script>
+  <!--/radix_placeholder_navigation_in_header-->
+  <!--radix_placeholder_distill-->
+  
+  <style type="text/css">
+  
+  body {
+    background-color: white;
+  }
+  
+  .pandoc-table {
+    width: 100%;
+  }
+  
+  .pandoc-table>caption {
+    margin-bottom: 10px;
+  }
+  
+  .pandoc-table th:not([align]) {
+    text-align: left;
+  }
+  
+  .pagedtable-footer {
+    font-size: 15px;
+  }
+  
+  .html-widget {
+    margin-bottom: 2.0em;
+  }
+  
+  .l-screen-inset {
+    padding-right: 16px;
+  }
+  
+  .l-screen .caption {
+    margin-left: 10px;
+  }
+  
+  .shaded {
+    background: rgb(247, 247, 247);
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .shaded .html-widget {
+    margin-bottom: 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .shaded .shaded-content {
+    background: white;
+  }
+  
+  .text-output {
+    margin-top: 0;
+    line-height: 1.5em;
+  }
+  
+  .hidden {
+    display: none !important;
+  }
+  
+  d-article {
+    padding-bottom: 30px;
+  }
+  
+  d-appendix {
+    padding-top: 30px;
+  }
+  
+  d-article>p>img {
+    width: 100%;
+  }
+  
+  d-article iframe {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 2.0em;
+    width: 100%;
+  }
+  
+  figure img.external {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+    padding: 18px;
+    box-sizing: border-box;
+  }
+  
+  /* CSS for table of contents */
+  
+  .d-toc {
+    color: rgba(0,0,0,0.8);
+    font-size: 0.8em;
+    line-height: 1em;
+  }
+  
+  .d-toc-header {
+    font-size: 0.6rem;
+    font-weight: 400;
+    color: rgba(0, 0, 0, 0.5);
+    text-transform: uppercase;
+    margin-top: 0;
+    margin-bottom: 1.3em;
+  }
+  
+  .d-toc a {
+    border-bottom: none;
+  }
+  
+  .d-toc ul {
+    padding-left: 0;
+  }
+  
+  .d-toc li>ul {
+    padding-top: 0.8em;
+    padding-left: 16px;
+    margin-bottom: 0.6em;
+  }
+  
+  .d-toc ul,
+  .d-toc li {
+    list-style-type: none;
+  }
+  
+  .d-toc li {
+    margin-bottom: 0.9em;
+  }
+  
+  .d-toc-separator {
+    margin-top: 20px;
+    margin-bottom: 2em;
+  }
+  
+  .d-article-with-toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  
+  
+  
+  /* Tweak code blocks (note that this CSS is repeated above in an injection
+     into the d-code shadow dom) */
+  
+  d-code {
+    overflow-x: auto !important;
+  }
+  
+  pre.d-code code.d-code {
+    padding-left: 10px;
+    font-size: 12px;
+    border-left: 2px solid rgba(0,0,0,0.1);
+  }
+  
+  pre.text-output {
+  
+    font-size: 12px;
+    color: black;
+    background: none;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    text-align: left;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    line-height: 1.5;
+  
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+    tab-size: 4;
+  
+    -webkit-hyphens: none;
+    -moz-hyphens: none;
+    -ms-hyphens: none;
+    hyphens: none;
+  }
+  
+  @media(min-width: 768px) {
+  
+  d-code {
+    overflow-x: visible !important;
+  }
+  
+  pre.d-code code.d-code  {
+      padding-left: 18px;
+      font-size: 14px;
+  }
+  pre.text-output {
+    font-size: 14px;
+  }
+  }
+  
+  /* Figure */
+  
+  .figure {
+    position: relative;
+    margin-bottom: 2.5em;
+    margin-top: 1.5em;
+  }
+  
+  .figure img {
+    width: 100%;
+  }
+  
+  .figure .caption {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 12px;
+    line-height: 1.5em;
+  }
+  
+  .figure img.external {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+    padding: 18px;
+    box-sizing: border-box;
+  }
+  
+  .figure .caption a {
+    color: rgba(0, 0, 0, 0.6);
+  }
+  
+  .figure .caption b,
+  .figure .caption strong, {
+    font-weight: 600;
+    color: rgba(0, 0, 0, 1.0);
+  }
+  
+  
+  
+  /* Tweak 1000px media break to show more text */
+  
+  @media(min-width: 1000px) {
+    .base-grid,
+    distill-header,
+    d-title,
+    d-abstract,
+    d-article,
+    d-appendix,
+    distill-appendix,
+    d-byline,
+    d-footnote-list,
+    d-citation-list,
+    distill-footer {
+      grid-template-columns: [screen-start] 1fr [page-start kicker-start] 80px [middle-start] 50px [text-start kicker-end] 65px 65px 65px 65px 65px 65px 65px 65px [text-end gutter-start] 65px [middle-end] 65px [page-end gutter-end] 1fr [screen-end];
+      grid-column-gap: 16px;
+    }
+  
+    .grid {
+      grid-column-gap: 16px;
+    }
+  
+    d-article {
+      font-size: 1.06rem;
+      line-height: 1.7em;
+    }
+    figure .caption, .figure .caption, figure figcaption {
+      font-size: 13px;
+    }
+  }
+  
+  @media(min-width: 1180px) {
+    .base-grid,
+    distill-header,
+    d-title,
+    d-abstract,
+    d-article,
+    d-appendix,
+    distill-appendix,
+    d-byline,
+    d-footnote-list,
+    d-citation-list,
+    distill-footer {
+      grid-template-columns: [screen-start] 1fr [page-start kicker-start] 60px [middle-start] 60px [text-start kicker-end] 60px 60px 60px 60px 60px 60px 60px 60px [text-end gutter-start] 60px [middle-end] 60px [page-end gutter-end] 1fr [screen-end];
+      grid-column-gap: 32px;
+    }
+  
+    .grid {
+      grid-column-gap: 32px;
+    }
+  }
+  
+  
+  /* Get the citation styles for the appendix (not auto-injected on render since
+     we do our own rendering of the citation appendix) */
+  
+  d-appendix .citation-appendix,
+  .d-appendix .citation-appendix {
+    font-size: 11px;
+    line-height: 15px;
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    padding-left: 18px;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(0, 0, 0, 0.02);
+    padding: 10px 18px;
+    border-radius: 3px;
+    color: rgba(150, 150, 150, 1);
+    overflow: hidden;
+    margin-top: -12px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  
+  
+  /* Social footer */
+  
+  .social_footer {
+    margin-top: 30px;
+    margin-bottom: 0;
+    color: rgba(0,0,0,0.67);
+  }
+  
+  .disqus-comments {
+    margin-right: 30px;
+  }
+  
+  .disqus-comment-count {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+  }
+  
+  #disqus_thread {
+    margin-top: 30px;
+  }
+  
+  .article-sharing a {
+    border-bottom: none;
+    margin-right: 8px;
+  }
+  
+  .article-sharing a:hover {
+    border-bottom: none;
+  }
+  
+  .sidebar-section.subscribe {
+    font-size: 12px;
+    line-height: 1.6em;
+  }
+  
+  .subscribe p {
+    margin-bottom: 0.5em;
+  }
+  
+  
+  .article-footer .subscribe {
+    font-size: 15px;
+    margin-top: 45px;
+  }
+  
+  
+  /* Improve display for browsers without grid (IE/Edge <= 15) */
+  
+  .downlevel {
+    line-height: 1.6em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+  }
+  
+  .downlevel .d-title {
+    padding-top: 6rem;
+    padding-bottom: 1.5rem;
+  }
+  
+  .downlevel .d-title h1 {
+    font-size: 50px;
+    font-weight: 700;
+    line-height: 1.1em;
+    margin: 0 0 0.5rem;
+  }
+  
+  .downlevel .d-title p {
+    font-weight: 300;
+    font-size: 1.2rem;
+    line-height: 1.55em;
+    margin-top: 0;
+  }
+  
+  .downlevel .d-byline {
+    padding-top: 0.8em;
+    padding-bottom: 0.8em;
+    font-size: 0.8rem;
+    line-height: 1.8em;
+  }
+  
+  .downlevel .section-separator {
+    border: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .downlevel .d-article {
+    font-size: 1.06rem;
+    line-height: 1.7em;
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+  }
+  
+  
+  .downlevel .d-appendix {
+    padding-left: 0;
+    padding-right: 0;
+    max-width: none;
+    font-size: 0.8em;
+    line-height: 1.7em;
+    margin-bottom: 0;
+    color: rgba(0,0,0,0.5);
+    padding-top: 40px;
+    padding-bottom: 48px;
+  }
+  
+  .downlevel .footnotes ol {
+    padding-left: 13px;
+  }
+  
+  .downlevel .base-grid,
+  .downlevel .distill-header,
+  .downlevel .d-title,
+  .downlevel .d-abstract,
+  .downlevel .d-article,
+  .downlevel .d-appendix,
+  .downlevel .distill-appendix,
+  .downlevel .d-byline,
+  .downlevel .d-footnote-list,
+  .downlevel .d-citation-list,
+  .downlevel .distill-footer,
+  .downlevel .appendix-bottom,
+  .downlevel .posts-container {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+  
+  @media(min-width: 768px) {
+    .downlevel .base-grid,
+    .downlevel .distill-header,
+    .downlevel .d-title,
+    .downlevel .d-abstract,
+    .downlevel .d-article,
+    .downlevel .d-appendix,
+    .downlevel .distill-appendix,
+    .downlevel .d-byline,
+    .downlevel .d-footnote-list,
+    .downlevel .d-citation-list,
+    .downlevel .distill-footer,
+    .downlevel .appendix-bottom,
+    .downlevel .posts-container {
+    padding-left: 150px;
+    padding-right: 150px;
+    max-width: 900px;
+  }
+  }
+  
+  .downlevel pre code {
+    display: block;
+    border-left: 2px solid rgba(0, 0, 0, .1);
+    padding: 0 0 0 20px;
+    font-size: 14px;
+  }
+  
+  .downlevel code, .downlevel pre {
+    color: black;
+    background: none;
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    text-align: left;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    line-height: 1.5;
+  
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+    tab-size: 4;
+  
+    -webkit-hyphens: none;
+    -moz-hyphens: none;
+    -ms-hyphens: none;
+    hyphens: none;
+  }
+  
+  </style>
+  
+  <script type="application/javascript">
+  
+  function is_downlevel_browser() {
+    if (bowser.isUnsupportedBrowser({ msie: "12", msedge: "16"},
+                                   window.navigator.userAgent)) {
+      return true;
+    } else {
+      return window.load_distill_framework === undefined;
+    }
+  }
+  
+  // show body when load is complete
+  function on_load_complete() {
+  
+    // set body to visible
+    document.body.style.visibility = 'visible';
+  
+    // force redraw for leaflet widgets
+    if (window.HTMLWidgets) {
+      var maps = window.HTMLWidgets.findAll(".leaflet");
+      $.each(maps, function(i, el) {
+        var map = this.getMap();
+        map.invalidateSize();
+        map.eachLayer(function(layer) {
+          if (layer instanceof L.TileLayer)
+            layer.redraw();
+        });
+      });
+    }
+  
+    // trigger 'shown' so htmlwidgets resize
+    $('d-article').trigger('shown');
+  }
+  
+  function init_distill() {
+  
+    init_common();
+  
+    // create front matter
+    var front_matter = $('<d-front-matter></d-front-matter>');
+    $('#distill-front-matter').wrap(front_matter);
+  
+    // create d-title
+    $('.d-title').changeElementType('d-title');
+  
+    // create d-byline
+    var byline = $('<d-byline></d-byline>');
+    $('.d-byline').replaceWith(byline);
+  
+    // create d-article
+    var article = $('<d-article></d-article>');
+    $('.d-article').wrap(article).children().unwrap();
+  
+    // move posts container into article
+    $('.posts-container').appendTo($('d-article'));
+  
+    // create d-appendix
+    $('.d-appendix').changeElementType('d-appendix');
+  
+    // create d-bibliography
+    var bibliography = $('<d-bibliography></d-bibliography>');
+    $('#distill-bibliography').wrap(bibliography);
+  
+    // flag indicating that we have appendix items
+    var appendix = $('.appendix-bottom').children('h3').length > 0;
+  
+    // replace citations with <d-cite>
+    $('.citation').each(function(i, val) {
+      appendix = true;
+      var cites = $(this).attr('data-cites').split(" ");
+      var dt_cite = $('<d-cite></d-cite>');
+      dt_cite.attr('key', cites.join());
+      $(this).replaceWith(dt_cite);
+    });
+    // remove refs
+    $('#refs').remove();
+  
+    // replace footnotes with <d-footnote>
+    $('.footnote-ref').each(function(i, val) {
+      appendix = true;
+      var href = $(this).attr('href');
+      var id = href.replace('#', '');
+      var fn = $('#' + id);
+      var fn_p = $('#' + id + '>p');
+      fn_p.find('.footnote-back').remove();
+      var text = fn_p.html();
+      var dtfn = $('<d-footnote></d-footnote>');
+      dtfn.html(text);
+      $(this).replaceWith(dtfn);
+    });
+    // remove footnotes
+    $('.footnotes').remove();
+  
+    $('h1.appendix, h2.appendix').each(function(i, val) {
+      $(this).changeElementType('h3');
+    });
+    $('h3.appendix').each(function(i, val) {
+      var id = $(this).attr('id');
+      $('.d-toc a[href="#' + id + '"]').parent().remove();
+      appendix = true;
+      $(this).nextUntil($('h1, h2, h3')).addBack().appendTo($('d-appendix'));
+    });
+  
+    // show d-appendix if we have appendix content
+    $("d-appendix").css('display', appendix ? 'grid' : 'none');
+  
+    // replace code blocks with d-code
+    $('pre>code').each(function(i, val) {
+      var code = $(this);
+      var pre = code.parent();
+      var clz = "";
+      var language = pre.attr('class');
+      if (language) {
+        // map unknown languages to "clike" (without this they just dissapear)
+        if ($.inArray(language, ["bash", "clike", "css", "go", "html",
+                                 "javascript", "js", "julia", "lua", "markdown",
+                                 "markup", "mathml", "python", "svg", "xml"]) == -1)
+          language = "clike";
+        language = ' language="' + language + '"';
+        var dt_code = $('<d-code block' + language + clz + '></d-code>');
+        dt_code.text(code.text());
+        pre.replaceWith(dt_code);
+      } else {
+        code.addClass('text-output').unwrap().changeElementType('pre');
+      }
+    });
+  
+    // localize layout chunks to just output
+    $('.layout-chunk').each(function(i, val) {
+  
+      // capture layout
+      var layout = $(this).attr('data-layout');
+  
+      // apply layout to markdown level block elements
+      var elements = $(this).children().not('d-code, pre.text-output, script');
+      elements.each(function(i, el) {
+        var layout_div = $('<div class="' + layout + '"></div>');
+        if (layout_div.hasClass('shaded')) {
+          var shaded_content = $('<div class="shaded-content"></div>');
+          $(this).wrap(shaded_content);
+          $(this).parent().wrap(layout_div);
+        } else {
+          $(this).wrap(layout_div);
+        }
+      });
+  
+  
+      // unwrap the layout-chunk div
+      $(this).children().unwrap();
+    });
+  
+    // load distill framework
+    load_distill_framework();
+  
+    // wait for window.distillRunlevel == 4 to do post processing
+    function distill_post_process() {
+  
+      if (!window.distillRunlevel || window.distillRunlevel < 4)
+        return;
+  
+      // hide author/affiliations entirely if we have no authors
+      var front_matter = JSON.parse($("#distill-front-matter").html());
+      var have_authors = front_matter.authors && front_matter.authors.length > 0;
+      if (!have_authors)
+        $('d-byline').addClass('hidden');
+  
+      // table of contents
+      if (have_authors) // adjust border if we are in authors
+        $('.d-toc').parent().addClass('d-article-with-toc');
+  
+      // strip links that point to #
+      $('.authors-affiliations').find('a[href="#"]').removeAttr('href');
+  
+      // hide elements of author/affiliations grid that have no value
+      function hide_byline_column(caption) {
+        $('d-byline').find('h3:contains("' + caption + '")').parent().css('visibility', 'hidden');
+      }
+  
+      // affiliations
+      var have_affiliations = false;
+      for (var i = 0; i<front_matter.authors.length; ++i) {
+        var author = front_matter.authors[i];
+        if (author.affiliation !== "&nbsp;") {
+          have_affiliations = true;
+          break;
+        }
+      }
+      if (!have_affiliations)
+        $('d-byline').find('h3:contains("Affiliations")').css('visibility', 'hidden');
+  
+      // published date
+      if (!front_matter.publishedDate)
+        hide_byline_column("Published");
+  
+      // document object identifier
+      var doi = $('d-byline').find('h3:contains("DOI")');
+      var doi_p = doi.next().empty();
+      if (!front_matter.doi) {
+        // if we have a citation and valid citationText then link to that
+        if ($('#citation').length > 0 && front_matter.citationText) {
+          doi.html('Citation');
+          $('<a href="#citation"></a>')
+            .text(front_matter.citationText)
+            .appendTo(doi_p);
+        } else {
+          hide_byline_column("DOI");
+        }
+      } else {
+        $('<a></a>')
+           .attr('href', "https://doi.org/" + front_matter.doi)
+           .html(front_matter.doi)
+           .appendTo(doi_p);
+      }
+  
+       // change plural form of authors/affiliations
+      if (front_matter.authors.length === 1) {
+        var grid = $('.authors-affiliations');
+        grid.children('h3:contains("Authors")').text('Author');
+        grid.children('h3:contains("Affiliations")').text('Affiliation');
+      }
+  
+      // inject pre code styles (can't do this with a global stylesheet b/c a shadow root is used)
+      $('d-code').each(function(i, val) {
+        var style = document.createElement('style');
+        style.innerHTML = 'pre code { padding-left: 10px; font-size: 12px; border-left: 2px solid rgba(0,0,0,0.1); } ' +
+                          '@media(min-width: 768px) { pre code { padding-left: 18px; font-size: 14px; } }';
+        if (this.shadowRoot)
+          this.shadowRoot.appendChild(style);
+      });
+  
+      // move appendix-bottom entries to the bottom
+      $('.appendix-bottom').appendTo('d-appendix').children().unwrap();
+      $('.appendix-bottom').remove();
+  
+      // clear polling timer
+      clearInterval(tid);
+  
+      // show body now that everything is ready
+      on_load_complete();
+    }
+  
+    var tid = setInterval(distill_post_process, 50);
+    distill_post_process();
+  
+  }
+  
+  function init_downlevel() {
+  
+    init_common();
+  
+     // insert hr after d-title
+    $('.d-title').after($('<hr class="section-separator"/>'));
+  
+    // check if we have authors
+    var front_matter = JSON.parse($("#distill-front-matter").html());
+    var have_authors = front_matter.authors && front_matter.authors.length > 0;
+  
+    // manage byline/border
+    if (!have_authors)
+      $('.d-byline').remove();
+    $('.d-byline').after($('<hr class="section-separator"/>'));
+    $('.d-byline a').remove();
+  
+    // remove toc
+    $('.d-toc-header').remove();
+    $('.d-toc').remove();
+    $('.d-toc-separator').remove();
+  
+    // move appendix elements
+    $('h1.appendix, h2.appendix').each(function(i, val) {
+      $(this).changeElementType('h3');
+    });
+    $('h3.appendix').each(function(i, val) {
+      $(this).nextUntil($('h1, h2, h3')).addBack().appendTo($('.d-appendix'));
+    });
+  
+  
+    // inject headers into references and footnotes
+    var refs_header = $('<h3></h3>');
+    refs_header.text('References');
+    $('#refs').prepend(refs_header);
+  
+    var footnotes_header = $('<h3></h3');
+    footnotes_header.text('Footnotes');
+    $('.footnotes').children('hr').first().replaceWith(footnotes_header);
+  
+    // move appendix-bottom entries to the bottom
+    $('.appendix-bottom').appendTo('.d-appendix').children().unwrap();
+    $('.appendix-bottom').remove();
+  
+    // remove appendix if it's empty
+    if ($('.d-appendix').children().length === 0)
+      $('.d-appendix').remove();
+  
+    // prepend separator above appendix
+    $('.d-appendix').before($('<hr class="section-separator" style="clear: both"/>'));
+  
+    // trim code
+    $('pre>code').each(function(i, val) {
+      $(this).html($.trim($(this).html()));
+    });
+  
+    // move posts-container right before article
+    $('.posts-container').insertBefore($('.d-article'));
+  
+    $('body').addClass('downlevel');
+  
+    on_load_complete();
+  }
+  
+  
+  function init_common() {
+  
+    // jquery plugin to change element types
+    (function($) {
+      $.fn.changeElementType = function(newType) {
+        var attrs = {};
+  
+        $.each(this[0].attributes, function(idx, attr) {
+          attrs[attr.nodeName] = attr.nodeValue;
+        });
+  
+        this.replaceWith(function() {
+          return $("<" + newType + "/>", attrs).append($(this).contents());
+        });
+      };
+    })(jQuery);
+  
+    // prevent underline for linked images
+    $('a > img').parent().css({'border-bottom' : 'none'});
+  
+    // mark non-body figures created by knitr chunks as 100% width
+    $('.layout-chunk').each(function(i, val) {
+      var figures = $(this).find('img, .html-widget');
+      if ($(this).attr('data-layout') !== "l-body") {
+        figures.css('width', '100%');
+      } else {
+        figures.css('max-width', '100%');
+        figures.filter("[width]").each(function(i, val) {
+          var fig = $(this);
+          fig.css('width', fig.attr('width') + 'px');
+        });
+  
+      }
+    });
+  
+    // auto-append index.html to post-preview links in file: protocol
+    // and in rstudio ide preview
+    $('.post-preview').each(function(i, val) {
+      if (window.location.protocol === "file:")
+        $(this).attr('href', $(this).attr('href') + "index.html");
+    });
+  
+    // get rid of index.html references in header
+    if (window.location.protocol !== "file:") {
+      $('.distill-site-header a[href]').each(function(i,val) {
+        $(this).attr('href', $(this).attr('href').replace("index.html", "./"));
+      });
+    }
+  
+    // add class to pandoc style tables
+    $('tr.header').parent('thead').parent('table').addClass('pandoc-table');
+    $('.kable-table').children('table').addClass('pandoc-table');
+  
+    // add figcaption style to table captions
+    $('caption').parent('table').addClass("figcaption");
+  
+    // initialize posts list
+    if (window.init_posts_list)
+      window.init_posts_list();
+  
+    // implmement disqus comment link
+    $('.disqus-comment-count').click(function() {
+      window.headroom_prevent_pin = true;
+      $('#disqus_thread').toggleClass('hidden');
+      if (!$('#disqus_thread').hasClass('hidden')) {
+        var offset = $(this).offset();
+        $(window).resize();
+        $('html, body').animate({
+          scrollTop: offset.top - 35
+        });
+      }
+    });
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    if (is_downlevel_browser())
+      init_downlevel();
+    else
+      window.addEventListener('WebComponentsReady', init_distill);
+  });
+  
+  </script>
+  
+  <!--/radix_placeholder_distill-->
+  <link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+  <script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+  <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+  <script src="site_libs/bowser-1.9.3/bowser.min.js"></script>
+  <script src="site_libs/webcomponents-2.0.0/webcomponents.js"></script>
+  <script src="site_libs/distill-2.2.21/template.v2.js"></script>
+  <!--radix_placeholder_site_in_header-->
+  <!--/radix_placeholder_site_in_header-->
+
+
+</head>
+
+<body>
+
+<!--radix_placeholder_front_matter-->
+
+<script id="distill-front-matter" type="text/json">
+{"title":"k-Nearest Neighbors","description":"The third session was about k-nearest neighbors, we fitted them to the \"OASIS Brain Projekt\" data on dementia. Unlike the examples in the seminar, here \"proper\" hyperparamter optimization via cross validation is applied. The performance of the final model is then evaluated on a holdout set.","authors":[]}
+</script>
+
+<!--/radix_placeholder_front_matter-->
+<!--radix_placeholder_navigation_before_body-->
+<header class="header header--fixed" role="banner">
+<nav class="distill-site-nav distill-site-header">
+<div class="nav-left">
+<a href="index.html" class="title">Machine Learning Seminar @ HU</a>
+</div>
+<div class="nav-right">
+<a href="https://github.com/aaronpeikert/hu_ml">
+<i class="fab fa-github"></i>
+</a>
+<a href="selection.html">Model Selection</a>
+<div class="nav-dropdown">
+<button class="nav-dropbtn">
+Models:
+ 
+<span class="down-arrow">&#x25BE;</span>
+</button>
+<div class="nav-dropdown-content">
+<a href="lm.html">Linear Model</a>
+</div>
+</div>
+<a href="javascript:void(0);" class="nav-toggle">&#9776;</a>
+</div>
+</nav>
+</header>
+<!--/radix_placeholder_navigation_before_body-->
+<!--radix_placeholder_site_before_body-->
+<!--/radix_placeholder_site_before_body-->
+
+<div class="d-title">
+<h1>k-Nearest Neighbors</h1>
+<p>The third session was about k-nearest neighbors, we fitted them to the “OASIS Brain Projekt” data on dementia. Unlike the examples in the seminar, here “proper” hyperparamter optimization via cross validation is applied. The performance of the final model is then evaluated on a holdout set.</p>
+</div>
+
+
+<div class="d-article">
+<h1 id="task-1">Task 1</h1>
+<ol type="1">
+<li>Load oasis data.</li>
+</ol>
+<div class="layout-chunk" data-layout="l-body-outset">
+<pre class="r"><code>
+oasis &lt;- read_csv(here(&quot;data&quot;, &quot;raw&quot;, &quot;oasis.csv&quot;))
+rmarkdown::paged_table(oasis)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["ID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["M/F"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Hand"],"name":[3],"type":["chr"],"align":["left"]},{"label":["Age"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Educ"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["SES"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["MMSE"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["CDR"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["eTIV"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["nWBV"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["ASF"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Delay"],"name":[12],"type":["chr"],"align":["left"]}],"data":[{"1":"OAS1_0001_MR1","2":"F","3":"R","4":"74","5":"2","6":"3","7":"29","8":"0.0","9":"1344","10":"0.743","11":"1.306","12":"N/A"},{"1":"OAS1_0002_MR1","2":"F","3":"R","4":"55","5":"4","6":"1","7":"29","8":"0.0","9":"1147","10":"0.810","11":"1.531","12":"N/A"},{"1":"OAS1_0003_MR1","2":"F","3":"R","4":"73","5":"4","6":"3","7":"27","8":"0.5","9":"1454","10":"0.708","11":"1.207","12":"N/A"},{"1":"OAS1_0004_MR1","2":"M","3":"R","4":"28","5":"NA","6":"NA","7":"NA","8":"NA","9":"1588","10":"0.803","11":"1.105","12":"N/A"},{"1":"OAS1_0005_MR1","2":"M","3":"R","4":"18","5":"NA","6":"NA","7":"NA","8":"NA","9":"1737","10":"0.848","11":"1.010","12":"N/A"},{"1":"OAS1_0006_MR1","2":"F","3":"R","4":"24","5":"NA","6":"NA","7":"NA","8":"NA","9":"1131","10":"0.862","11":"1.551","12":"N/A"},{"1":"OAS1_0007_MR1","2":"M","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1516","10":"0.830","11":"1.157","12":"N/A"},{"1":"OAS1_0009_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1505","10":"0.843","11":"1.166","12":"N/A"},{"1":"OAS1_0010_MR1","2":"M","3":"R","4":"74","5":"5","6":"2","7":"30","8":"0.0","9":"1636","10":"0.689","11":"1.073","12":"N/A"},{"1":"OAS1_0011_MR1","2":"F","3":"R","4":"52","5":"3","6":"2","7":"30","8":"0.0","9":"1321","10":"0.827","11":"1.329","12":"N/A"},{"1":"OAS1_0012_MR1","2":"M","3":"R","4":"30","5":"NA","6":"NA","7":"NA","8":"NA","9":"1574","10":"0.842","11":"1.115","12":"N/A"},{"1":"OAS1_0013_MR1","2":"F","3":"R","4":"81","5":"5","6":"2","7":"30","8":"0.0","9":"1664","10":"0.679","11":"1.055","12":"N/A"},{"1":"OAS1_0014_MR1","2":"F","3":"R","4":"19","5":"NA","6":"NA","7":"NA","8":"NA","9":"1525","10":"0.856","11":"1.151","12":"N/A"},{"1":"OAS1_0015_MR1","2":"M","3":"R","4":"76","5":"2","6":"NA","7":"28","8":"0.5","9":"1738","10":"0.719","11":"1.010","12":"N/A"},{"1":"OAS1_0016_MR1","2":"M","3":"R","4":"82","5":"2","6":"4","7":"27","8":"0.5","9":"1477","10":"0.739","11":"1.188","12":"N/A"},{"1":"OAS1_0017_MR1","2":"M","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1689","10":"0.845","11":"1.039","12":"N/A"},{"1":"OAS1_0018_MR1","2":"M","3":"R","4":"39","5":"3","6":"4","7":"28","8":"0.0","9":"1636","10":"0.813","11":"1.073","12":"N/A"},{"1":"OAS1_0019_MR1","2":"F","3":"R","4":"89","5":"5","6":"1","7":"30","8":"0.0","9":"1536","10":"0.715","11":"1.142","12":"N/A"},{"1":"OAS1_0020_MR1","2":"F","3":"R","4":"48","5":"5","6":"2","7":"29","8":"0.0","9":"1326","10":"0.785","11":"1.323","12":"N/A"},{"1":"OAS1_0021_MR1","2":"F","3":"R","4":"80","5":"3","6":"3","7":"23","8":"0.5","9":"1794","10":"0.765","11":"0.978","12":"N/A"},{"1":"OAS1_0022_MR1","2":"F","3":"R","4":"69","5":"2","6":"4","7":"23","8":"0.5","9":"1447","10":"0.757","11":"1.213","12":"N/A"},{"1":"OAS1_0023_MR1","2":"M","3":"R","4":"82","5":"2","6":"3","7":"27","8":"0.5","9":"1420","10":"0.710","11":"1.236","12":"N/A"},{"1":"OAS1_0025_MR1","2":"F","3":"R","4":"24","5":"NA","6":"NA","7":"NA","8":"NA","9":"1240","10":"0.893","11":"1.415","12":"N/A"},{"1":"OAS1_0026_MR1","2":"F","3":"R","4":"58","5":"5","6":"1","7":"30","8":"0.0","9":"1235","10":"0.820","11":"1.421","12":"N/A"},{"1":"OAS1_0027_MR1","2":"F","3":"R","4":"43","5":"NA","6":"NA","7":"NA","8":"NA","9":"1194","10":"0.834","11":"1.470","12":"N/A"},{"1":"OAS1_0028_MR1","2":"F","3":"R","4":"86","5":"2","6":"4","7":"27","8":"1.0","9":"1449","10":"0.738","11":"1.211","12":"N/A"},{"1":"OAS1_0029_MR1","2":"M","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1653","10":"0.858","11":"1.062","12":"N/A"},{"1":"OAS1_0030_MR1","2":"F","3":"R","4":"65","5":"2","6":"3","7":"29","8":"0.0","9":"1392","10":"0.764","11":"1.261","12":"N/A"},{"1":"OAS1_0031_MR1","2":"M","3":"R","4":"88","5":"1","6":"4","7":"26","8":"1.0","9":"1419","10":"0.674","11":"1.236","12":"N/A"},{"1":"OAS1_0032_MR1","2":"M","3":"R","4":"89","5":"4","6":"1","7":"28","8":"0.0","9":"1631","10":"0.682","11":"1.076","12":"N/A"},{"1":"OAS1_0033_MR1","2":"F","3":"R","4":"80","5":"4","6":"2","7":"29","8":"0.0","9":"1323","10":"0.735","11":"1.326","12":"N/A"},{"1":"OAS1_0034_MR1","2":"M","3":"R","4":"51","5":"5","6":"1","7":"29","8":"0.0","9":"1538","10":"0.831","11":"1.141","12":"N/A"},{"1":"OAS1_0035_MR1","2":"F","3":"R","4":"84","5":"3","6":"2","7":"28","8":"1.0","9":"1402","10":"0.695","11":"1.252","12":"N/A"},{"1":"OAS1_0037_MR1","2":"M","3":"R","4":"27","5":"NA","6":"NA","7":"NA","8":"NA","9":"1313","10":"0.842","11":"1.336","12":"N/A"},{"1":"OAS1_0038_MR1","2":"F","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1443","10":"0.839","11":"1.216","12":"N/A"},{"1":"OAS1_0039_MR1","2":"M","3":"R","4":"70","5":"4","6":"3","7":"29","8":"0.5","9":"1463","10":"0.772","11":"1.200","12":"N/A"},{"1":"OAS1_0040_MR1","2":"F","3":"R","4":"38","5":"NA","6":"NA","7":"NA","8":"NA","9":"1244","10":"0.824","11":"1.411","12":"N/A"},{"1":"OAS1_0041_MR1","2":"F","3":"R","4":"62","5":"2","6":"NA","7":"28","8":"0.5","9":"1350","10":"0.758","11":"1.300","12":"N/A"},{"1":"OAS1_0042_MR1","2":"M","3":"R","4":"80","5":"4","6":"2","7":"29","8":"0.5","9":"1854","10":"0.709","11":"0.947","12":"N/A"},{"1":"OAS1_0043_MR1","2":"M","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1511","10":"0.846","11":"1.162","12":"N/A"},{"1":"OAS1_0044_MR1","2":"F","3":"R","4":"47","5":"4","6":"2","7":"30","8":"0.0","9":"1346","10":"0.829","11":"1.304","12":"N/A"},{"1":"OAS1_0045_MR1","2":"M","3":"R","4":"29","5":"NA","6":"NA","7":"NA","8":"NA","9":"1590","10":"0.829","11":"1.104","12":"N/A"},{"1":"OAS1_0046_MR1","2":"M","3":"R","4":"64","5":"2","6":"NA","7":"22","8":"0.5","9":"1351","10":"0.787","11":"1.299","12":"N/A"},{"1":"OAS1_0047_MR1","2":"F","3":"R","4":"57","5":"NA","6":"NA","7":"NA","8":"NA","9":"1408","10":"0.784","11":"1.247","12":"N/A"},{"1":"OAS1_0049_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1329","10":"0.887","11":"1.321","12":"N/A"},{"1":"OAS1_0050_MR1","2":"F","3":"R","4":"48","5":"NA","6":"NA","7":"NA","8":"NA","9":"1358","10":"0.841","11":"1.293","12":"N/A"},{"1":"OAS1_0051_MR1","2":"F","3":"R","4":"24","5":"NA","6":"NA","7":"NA","8":"NA","9":"1567","10":"0.835","11":"1.120","12":"N/A"},{"1":"OAS1_0052_MR1","2":"F","3":"R","4":"78","5":"1","6":"5","7":"23","8":"1.0","9":"1462","10":"0.697","11":"1.200","12":"N/A"},{"1":"OAS1_0053_MR1","2":"F","3":"R","4":"83","5":"1","6":"4","7":"21","8":"1.0","9":"1384","10":"0.699","11":"1.268","12":"N/A"},{"1":"OAS1_0054_MR1","2":"F","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1567","10":"0.848","11":"1.120","12":"N/A"},{"1":"OAS1_0055_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1432","10":"0.831","11":"1.226","12":"N/A"},{"1":"OAS1_0056_MR1","2":"F","3":"R","4":"72","5":"3","6":"3","7":"15","8":"1.0","9":"1324","10":"0.668","11":"1.325","12":"N/A"},{"1":"OAS1_0057_MR1","2":"F","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1333","10":"0.862","11":"1.317","12":"N/A"},{"1":"OAS1_0058_MR1","2":"F","3":"R","4":"46","5":"5","6":"1","7":"30","8":"0.0","9":"1585","10":"0.817","11":"1.107","12":"N/A"},{"1":"OAS1_0059_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1396","10":"0.827","11":"1.257","12":"N/A"},{"1":"OAS1_0060_MR1","2":"M","3":"R","4":"79","5":"4","6":"NA","7":"29","8":"0.5","9":"1564","10":"0.734","11":"1.122","12":"N/A"},{"1":"OAS1_0061_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1749","10":"0.840","11":"1.441","12":"N/A"},{"1":"OAS1_0062_MR1","2":"F","3":"R","4":"73","5":"3","6":"2","7":"30","8":"0.0","9":"1456","10":"0.754","11":"1.205","12":"N/A"},{"1":"OAS1_0063_MR1","2":"M","3":"R","4":"48","5":"NA","6":"NA","7":"NA","8":"NA","9":"1675","10":"0.818","11":"1.048","12":"N/A"},{"1":"OAS1_0064_MR1","2":"F","3":"R","4":"77","5":"1","6":"4","7":"29","8":"0.0","9":"1583","10":"0.767","11":"1.108","12":"N/A"},{"1":"OAS1_0065_MR1","2":"M","3":"R","4":"90","5":"2","6":"3","7":"25","8":"0.0","9":"1301","10":"0.645","11":"1.349","12":"N/A"},{"1":"OAS1_0066_MR1","2":"F","3":"R","4":"66","5":"1","6":"4","7":"28","8":"0.5","9":"1309","10":"0.765","11":"1.341","12":"N/A"},{"1":"OAS1_0067_MR1","2":"F","3":"R","4":"71","5":"4","6":"1","7":"27","8":"1.0","9":"1549","10":"0.730","11":"1.133","12":"N/A"},{"1":"OAS1_0068_MR1","2":"F","3":"R","4":"67","5":"3","6":"4","7":"30","8":"0.0","9":"1508","10":"0.805","11":"1.164","12":"N/A"},{"1":"OAS1_0069_MR1","2":"M","3":"R","4":"33","5":"4","6":"1","7":"30","8":"0.0","9":"1709","10":"0.784","11":"1.027","12":"N/A"},{"1":"OAS1_0070_MR1","2":"F","3":"R","4":"63","5":"3","6":"2","7":"30","8":"0.0","9":"1327","10":"0.801","11":"1.323","12":"N/A"},{"1":"OAS1_0071_MR1","2":"F","3":"R","4":"49","5":"5","6":"1","7":"30","8":"0.0","9":"1459","10":"0.808","11":"1.203","12":"N/A"},{"1":"OAS1_0072_MR1","2":"F","3":"R","4":"60","5":"5","6":"1","7":"30","8":"0.0","9":"1402","10":"0.823","11":"1.252","12":"N/A"},{"1":"OAS1_0073_MR1","2":"F","3":"R","4":"69","5":"2","6":"4","7":"21","8":"1.0","9":"1495","10":"0.655","11":"1.174","12":"N/A"},{"1":"OAS1_0074_MR1","2":"M","3":"R","4":"43","5":"4","6":"NA","7":"30","8":"0.0","9":"1547","10":"0.847","11":"1.134","12":"N/A"},{"1":"OAS1_0075_MR1","2":"F","3":"R","4":"83","5":"3","6":"2","7":"30","8":"0.0","9":"1335","10":"0.720","11":"1.314","12":"N/A"},{"1":"OAS1_0076_MR1","2":"F","3":"R","4":"18","5":"NA","6":"NA","7":"NA","8":"NA","9":"1501","10":"0.839","11":"1.169","12":"N/A"},{"1":"OAS1_0077_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1537","10":"0.852","11":"1.142","12":"N/A"},{"1":"OAS1_0078_MR1","2":"F","3":"R","4":"64","5":"3","6":"2","7":"30","8":"0.0","9":"1395","10":"0.809","11":"1.258","12":"N/A"},{"1":"OAS1_0079_MR1","2":"F","3":"R","4":"25","5":"NA","6":"NA","7":"NA","8":"NA","9":"1522","10":"0.826","11":"1.153","12":"N/A"},{"1":"OAS1_0080_MR1","2":"F","3":"R","4":"25","5":"NA","6":"NA","7":"NA","8":"NA","9":"1628","10":"0.857","11":"1.078","12":"N/A"},{"1":"OAS1_0081_MR1","2":"F","3":"R","4":"18","5":"NA","6":"NA","7":"NA","8":"NA","9":"1309","10":"0.857","11":"1.341","12":"N/A"},{"1":"OAS1_0082_MR1","2":"F","3":"R","4":"75","5":"2","6":"3","7":"28","8":"0.5","9":"1407","10":"0.776","11":"1.247","12":"N/A"},{"1":"OAS1_0083_MR1","2":"F","3":"R","4":"90","5":"5","6":"3","7":"27","8":"0.0","9":"1200","10":"0.727","11":"1.462","12":"N/A"},{"1":"OAS1_0084_MR1","2":"F","3":"R","4":"81","5":"2","6":"NA","7":"27","8":"0.5","9":"1453","10":"0.727","11":"1.208","12":"N/A"},{"1":"OAS1_0085_MR1","2":"F","3":"R","4":"70","5":"2","6":"3","7":"29","8":"0.0","9":"1283","10":"0.791","11":"1.368","12":"N/A"},{"1":"OAS1_0086_MR1","2":"F","3":"R","4":"47","5":"4","6":"1","7":"30","8":"0.0","9":"1311","10":"0.835","11":"1.339","12":"N/A"},{"1":"OAS1_0087_MR1","2":"F","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1507","10":"0.845","11":"1.165","12":"N/A"},{"1":"OAS1_0088_MR1","2":"F","3":"R","4":"40","5":"NA","6":"NA","7":"NA","8":"NA","9":"1557","10":"0.865","11":"1.127","12":"N/A"},{"1":"OAS1_0090_MR1","2":"M","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1728","10":"0.862","11":"1.016","12":"N/A"},{"1":"OAS1_0091_MR1","2":"F","3":"R","4":"18","5":"NA","6":"NA","7":"NA","8":"NA","9":"1701","10":"0.834","11":"1.032","12":"N/A"},{"1":"OAS1_0092_MR1","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1442","10":"0.834","11":"1.217","12":"N/A"},{"1":"OAS1_0094_MR1","2":"F","3":"R","4":"66","5":"2","6":"3","7":"30","8":"0.5","9":"1447","10":"0.772","11":"1.213","12":"N/A"},{"1":"OAS1_0095_MR1","2":"M","3":"R","4":"28","5":"NA","6":"NA","7":"NA","8":"NA","9":"1578","10":"0.856","11":"1.112","12":"N/A"},{"1":"OAS1_0096_MR1","2":"F","3":"R","4":"47","5":"5","6":"2","7":"29","8":"0.0","9":"1357","10":"0.809","11":"1.294","12":"N/A"},{"1":"OAS1_0097_MR1","2":"M","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1568","10":"0.816","11":"1.119","12":"N/A"},{"1":"OAS1_0098_MR1","2":"F","3":"R","4":"67","5":"2","6":"NA","7":"18","8":"0.5","9":"1653","10":"0.693","11":"1.062","12":"N/A"},{"1":"OAS1_0099_MR1","2":"F","3":"R","4":"19","5":"NA","6":"NA","7":"NA","8":"NA","9":"1484","10":"0.878","11":"1.183","12":"N/A"},{"1":"OAS1_0101_MR1","2":"M","3":"R","4":"29","5":"NA","6":"NA","7":"NA","8":"NA","9":"1486","10":"0.840","11":"1.181","12":"N/A"},{"1":"OAS1_0102_MR1","2":"M","3":"R","4":"18","5":"NA","6":"NA","7":"NA","8":"NA","9":"1542","10":"0.850","11":"1.138","12":"N/A"},{"1":"OAS1_0103_MR1","2":"F","3":"R","4":"19","5":"NA","6":"NA","7":"NA","8":"NA","9":"1499","10":"0.850","11":"1.170","12":"N/A"},{"1":"OAS1_0104_MR1","2":"F","3":"R","4":"24","5":"NA","6":"NA","7":"NA","8":"NA","9":"1447","10":"0.841","11":"1.213","12":"N/A"},{"1":"OAS1_0105_MR1","2":"M","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1512","10":"0.839","11":"1.161","12":"N/A"},{"1":"OAS1_0106_MR1","2":"F","3":"R","4":"81","5":"2","6":"4","7":"30","8":"0.0","9":"1230","10":"0.717","11":"1.427","12":"N/A"},{"1":"OAS1_0107_MR1","2":"M","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1733","10":"0.853","11":"1.013","12":"N/A"},{"1":"OAS1_0108_MR1","2":"M","3":"R","4":"25","5":"NA","6":"NA","7":"NA","8":"NA","9":"1825","10":"0.854","11":"0.962","12":"N/A"},{"1":"OAS1_0109_MR1","2":"F","3":"R","4":"61","5":"4","6":"3","7":"30","8":"0.0","9":"1313","10":"0.813","11":"1.337","12":"N/A"},{"1":"OAS1_0110_MR1","2":"M","3":"R","4":"84","5":"3","6":"4","7":"28","8":"0.0","9":"1483","10":"0.697","11":"1.183","12":"N/A"},{"1":"OAS1_0111_MR1","2":"M","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1711","10":"0.855","11":"1.025","12":"N/A"},{"1":"OAS1_0112_MR1","2":"F","3":"R","4":"69","5":"5","6":"2","7":"29","8":"0.0","9":"1536","10":"0.733","11":"1.143","12":"N/A"},{"1":"OAS1_0113_MR1","2":"F","3":"R","4":"83","5":"2","6":"2","7":"29","8":"0.0","9":"1569","10":"0.768","11":"1.118","12":"N/A"},{"1":"OAS1_0114_MR1","2":"M","3":"R","4":"62","5":"2","6":"4","7":"30","8":"0.0","9":"1378","10":"0.804","11":"1.274","12":"N/A"},{"1":"OAS1_0115_MR1","2":"M","3":"R","4":"72","5":"5","6":"1","7":"26","8":"0.5","9":"1911","10":"0.726","11":"0.919","12":"N/A"},{"1":"OAS1_0116_MR1","2":"F","3":"R","4":"52","5":"5","6":"1","7":"30","8":"0.0","9":"1373","10":"0.784","11":"1.279","12":"N/A"},{"1":"OAS1_0117_MR1","2":"M","3":"R","4":"25","5":"NA","6":"NA","7":"NA","8":"NA","9":"1759","10":"0.783","11":"0.998","12":"N/A"},{"1":"OAS1_0119_MR1","2":"M","3":"R","4":"19","5":"NA","6":"NA","7":"NA","8":"NA","9":"1502","10":"0.838","11":"1.169","12":"N/A"},{"1":"OAS1_0120_MR1","2":"M","3":"R","4":"70","5":"4","6":"4","7":"26","8":"0.5","9":"1796","10":"0.736","11":"0.977","12":"N/A"},{"1":"OAS1_0121_MR1","2":"M","3":"R","4":"26","5":"NA","6":"NA","7":"NA","8":"NA","9":"1684","10":"0.820","11":"1.042","12":"N/A"},{"1":"OAS1_0122_MR1","2":"F","3":"R","4":"83","5":"5","6":"2","7":"22","8":"1.0","9":"1377","10":"0.715","11":"1.274","12":"N/A"},{"1":"OAS1_0123_MR1","2":"F","3":"R","4":"83","5":"3","6":"4","7":"24","8":"0.5","9":"1282","10":"0.797","11":"1.369","12":"N/A"},{"1":"OAS1_0124_MR1","2":"M","3":"R","4":"73","5":"2","6":"NA","7":"23","8":"0.5","9":"1661","10":"0.709","11":"1.056","12":"N/A"},{"1":"OAS1_0125_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1537","10":"0.832","11":"1.142","12":"N/A"},{"1":"OAS1_0126_MR1","2":"M","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1582","10":"0.885","11":"1.110","12":"N/A"},{"1":"OAS1_0127_MR1","2":"M","3":"R","4":"30","5":"NA","6":"NA","7":"NA","8":"NA","9":"1538","10":"0.862","11":"1.141","12":"N/A"},{"1":"OAS1_0129_MR1","2":"M","3":"R","4":"18","5":"NA","6":"NA","7":"NA","8":"NA","9":"1514","10":"0.846","11":"1.159","12":"N/A"},{"1":"OAS1_0130_MR1","2":"M","3":"R","4":"68","5":"3","6":"3","7":"26","8":"0.0","9":"1444","10":"0.789","11":"1.216","12":"N/A"},{"1":"OAS1_0131_MR1","2":"M","3":"R","4":"24","5":"NA","6":"NA","7":"NA","8":"NA","9":"1637","10":"0.824","11":"1.072","12":"N/A"},{"1":"OAS1_0132_MR1","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1596","10":"0.850","11":"1.099","12":"N/A"},{"1":"OAS1_0133_MR1","2":"F","3":"R","4":"65","5":"5","6":"2","7":"30","8":"0.0","9":"1277","10":"0.814","11":"1.374","12":"N/A"},{"1":"OAS1_0134_MR1","2":"M","3":"R","4":"80","5":"2","6":"4","7":"20","8":"1.0","9":"1494","10":"0.665","11":"1.175","12":"N/A"},{"1":"OAS1_0135_MR1","2":"M","3":"R","4":"64","5":"2","6":"4","7":"29","8":"0.0","9":"1561","10":"0.801","11":"1.124","12":"N/A"},{"1":"OAS1_0136_MR1","2":"F","3":"R","4":"24","5":"NA","6":"NA","7":"NA","8":"NA","9":"1178","10":"0.873","11":"1.489","12":"N/A"},{"1":"OAS1_0137_MR1","2":"F","3":"R","4":"87","5":"2","6":"3","7":"22","8":"1.0","9":"1499","10":"0.672","11":"1.171","12":"N/A"},{"1":"OAS1_0138_MR1","2":"M","3":"R","4":"80","5":"2","6":"4","7":"28","8":"0.0","9":"1689","10":"0.706","11":"1.039","12":"N/A"},{"1":"OAS1_0139_MR1","2":"F","3":"R","4":"72","5":"3","6":"3","7":"28","8":"0.0","9":"1512","10":"0.779","11":"1.161","12":"N/A"},{"1":"OAS1_0140_MR1","2":"F","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1375","10":"0.872","11":"1.277","12":"N/A"},{"1":"OAS1_0141_MR1","2":"M","3":"R","4":"24","5":"NA","6":"NA","7":"NA","8":"NA","9":"1523","10":"0.846","11":"1.152","12":"N/A"},{"1":"OAS1_0142_MR1","2":"M","3":"R","4":"70","5":"4","6":"1","7":"27","8":"0.5","9":"1581","10":"0.695","11":"1.110","12":"N/A"},{"1":"OAS1_0143_MR1","2":"M","3":"R","4":"66","5":"2","6":"4","7":"30","8":"0.5","9":"1446","10":"0.784","11":"1.214","12":"N/A"},{"1":"OAS1_0144_MR1","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1799","10":"0.865","11":"0.975","12":"N/A"},{"1":"OAS1_0145_MR1","2":"M","3":"R","4":"34","5":"NA","6":"NA","7":"NA","8":"NA","9":"1653","10":"0.831","11":"1.062","12":"N/A"},{"1":"OAS1_0146_MR1","2":"F","3":"R","4":"82","5":"5","6":"1","7":"28","8":"0.0","9":"1513","10":"0.742","11":"1.160","12":"N/A"},{"1":"OAS1_0147_MR1","2":"F","3":"R","4":"25","5":"NA","6":"NA","7":"NA","8":"NA","9":"1663","10":"0.845","11":"1.055","12":"N/A"},{"1":"OAS1_0148_MR1","2":"M","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1497","10":"0.811","11":"1.172","12":"N/A"},{"1":"OAS1_0150_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1510","10":"0.875","11":"1.162","12":"N/A"},{"1":"OAS1_0151_MR1","2":"F","3":"R","4":"25","5":"NA","6":"NA","7":"NA","8":"NA","9":"1439","10":"0.856","11":"1.220","12":"N/A"},{"1":"OAS1_0152_MR1","2":"F","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1471","10":"0.830","11":"1.193","12":"N/A"},{"1":"OAS1_0153_MR1","2":"M","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1662","10":"0.850","11":"1.056","12":"N/A"},{"1":"OAS1_0155_MR1","2":"M","3":"R","4":"71","5":"4","6":"NA","7":"28","8":"0.5","9":"1359","10":"0.753","11":"1.291","12":"N/A"},{"1":"OAS1_0156_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1591","10":"0.834","11":"1.103","12":"N/A"},{"1":"OAS1_0157_MR1","2":"F","3":"R","4":"86","5":"4","6":"3","7":"30","8":"0.0","9":"1293","10":"0.756","11":"1.357","12":"N/A"},{"1":"OAS1_0158_MR1","2":"M","3":"R","4":"81","5":"5","6":"1","7":"26","8":"0.5","9":"1556","10":"0.689","11":"1.128","12":"N/A"},{"1":"OAS1_0159_MR1","2":"F","3":"R","4":"40","5":"NA","6":"NA","7":"NA","8":"NA","9":"1437","10":"0.821","11":"1.221","12":"N/A"},{"1":"OAS1_0160_MR1","2":"M","3":"R","4":"57","5":"NA","6":"NA","7":"NA","8":"NA","9":"1745","10":"0.813","11":"1.006","12":"N/A"},{"1":"OAS1_0161_MR1","2":"F","3":"R","4":"84","5":"2","6":"2","7":"27","8":"0.5","9":"1390","10":"0.727","11":"1.263","12":"N/A"},{"1":"OAS1_0162_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1219","10":"0.872","11":"1.440","12":"N/A"},{"1":"OAS1_0163_MR1","2":"F","3":"R","4":"18","5":"NA","6":"NA","7":"NA","8":"NA","9":"1633","10":"0.859","11":"1.075","12":"N/A"},{"1":"OAS1_0164_MR1","2":"F","3":"R","4":"81","5":"2","6":"3","7":"28","8":"0.5","9":"1495","10":"0.687","11":"1.174","12":"N/A"},{"1":"OAS1_0165_MR1","2":"F","3":"R","4":"74","5":"2","6":"3","7":"29","8":"0.0","9":"1395","10":"0.787","11":"1.258","12":"N/A"},{"1":"OAS1_0166_MR1","2":"F","3":"R","4":"80","5":"2","6":"NA","7":"27","8":"0.5","9":"1475","10":"0.771","11":"1.190","12":"N/A"},{"1":"OAS1_0167_MR1","2":"F","3":"R","4":"41","5":"NA","6":"NA","7":"NA","8":"NA","9":"1361","10":"0.849","11":"1.289","12":"N/A"},{"1":"OAS1_0168_MR1","2":"F","3":"R","4":"50","5":"NA","6":"NA","7":"NA","8":"NA","9":"1411","10":"0.846","11":"1.244","12":"N/A"},{"1":"OAS1_0169_MR1","2":"F","3":"R","4":"88","5":"2","6":"3","7":"30","8":"0.0","9":"1445","10":"0.718","11":"1.215","12":"N/A"},{"1":"OAS1_0170_MR1","2":"M","3":"R","4":"71","5":"2","6":"4","7":"29","8":"0.0","9":"1455","10":"0.725","11":"1.206","12":"N/A"},{"1":"OAS1_0173_MR1","2":"M","3":"R","4":"35","5":"NA","6":"NA","7":"NA","8":"NA","9":"1475","10":"0.829","11":"1.190","12":"N/A"},{"1":"OAS1_0174_MR1","2":"M","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1415","10":"0.865","11":"1.241","12":"N/A"},{"1":"OAS1_0176_MR1","2":"F","3":"R","4":"88","5":"3","6":"1","7":"29","8":"0.0","9":"1398","10":"0.712","11":"1.255","12":"N/A"},{"1":"OAS1_0177_MR1","2":"F","3":"R","4":"54","5":"4","6":"1","7":"30","8":"0.0","9":"1494","10":"0.838","11":"1.174","12":"N/A"},{"1":"OAS1_0178_MR1","2":"F","3":"R","4":"44","5":"NA","6":"NA","7":"NA","8":"NA","9":"1272","10":"0.853","11":"1.380","12":"N/A"},{"1":"OAS1_0179_MR1","2":"F","3":"R","4":"87","5":"2","6":"4","7":"21","8":"0.5","9":"1250","10":"0.653","11":"1.405","12":"N/A"},{"1":"OAS1_0180_MR1","2":"F","3":"R","4":"80","5":"4","6":"2","7":"30","8":"0.0","9":"1496","10":"0.745","11":"1.173","12":"N/A"},{"1":"OAS1_0181_MR1","2":"F","3":"R","4":"49","5":"4","6":"2","7":"30","8":"0.0","9":"1316","10":"0.820","11":"1.334","12":"N/A"},{"1":"OAS1_0182_MR1","2":"M","3":"R","4":"48","5":"NA","6":"NA","7":"NA","8":"NA","9":"1561","10":"0.816","11":"1.124","12":"N/A"},{"1":"OAS1_0183_MR1","2":"M","3":"R","4":"44","5":"NA","6":"NA","7":"NA","8":"NA","9":"1908","10":"0.816","11":"0.920","12":"N/A"},{"1":"OAS1_0184_MR1","2":"F","3":"R","4":"65","5":"2","6":"NA","7":"16","8":"1.0","9":"1521","10":"0.669","11":"1.154","12":"N/A"},{"1":"OAS1_0185_MR1","2":"F","3":"R","4":"78","5":"2","6":"4","7":"17","8":"1.0","9":"1314","10":"0.739","11":"1.336","12":"N/A"},{"1":"OAS1_0186_MR1","2":"M","3":"R","4":"84","5":"5","6":"1","7":"29","8":"0.0","9":"1707","10":"0.731","11":"1.028","12":"N/A"},{"1":"OAS1_0188_MR1","2":"M","3":"R","4":"48","5":"4","6":"2","7":"30","8":"0.0","9":"1464","10":"0.790","11":"1.199","12":"N/A"},{"1":"OAS1_0189_MR1","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1628","10":"0.853","11":"1.078","12":"N/A"},{"1":"OAS1_0190_MR1","2":"M","3":"R","4":"43","5":"NA","6":"NA","7":"NA","8":"NA","9":"1561","10":"0.813","11":"1.124","12":"N/A"},{"1":"OAS1_0191_MR1","2":"F","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1421","10":"0.835","11":"1.235","12":"N/A"},{"1":"OAS1_0192_MR1","2":"F","3":"R","4":"31","5":"NA","6":"NA","7":"NA","8":"NA","9":"1294","10":"0.839","11":"1.357","12":"N/A"},{"1":"OAS1_0193_MR1","2":"F","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1546","10":"0.831","11":"1.135","12":"N/A"},{"1":"OAS1_0195_MR1","2":"F","3":"R","4":"76","5":"4","6":"1","7":"28","8":"0.0","9":"1346","10":"0.766","11":"1.304","12":"N/A"},{"1":"OAS1_0197_MR1","2":"F","3":"R","4":"89","5":"3","6":"3","7":"29","8":"0.0","9":"1154","10":"0.747","11":"1.521","12":"N/A"},{"1":"OAS1_0198_MR1","2":"F","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1332","10":"0.852","11":"1.317","12":"N/A"},{"1":"OAS1_0199_MR1","2":"M","3":"R","4":"69","5":"5","6":"1","7":"30","8":"0.0","9":"1601","10":"0.784","11":"1.096","12":"N/A"},{"1":"OAS1_0200_MR1","2":"F","3":"R","4":"60","5":"2","6":"4","7":"30","8":"0.0","9":"1366","10":"0.807","11":"1.285","12":"N/A"},{"1":"OAS1_0201_MR1","2":"F","3":"R","4":"85","5":"4","6":"1","7":"26","8":"0.0","9":"1460","10":"0.754","11":"1.202","12":"N/A"},{"1":"OAS1_0202_MR1","2":"F","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1574","10":"0.865","11":"1.115","12":"N/A"},{"1":"OAS1_0203_MR1","2":"F","3":"R","4":"71","5":"2","6":"3","7":"30","8":"0.0","9":"1360","10":"0.779","11":"1.291","12":"N/A"},{"1":"OAS1_0204_MR1","2":"M","3":"R","4":"48","5":"4","6":"1","7":"29","8":"0.0","9":"1430","10":"0.797","11":"1.227","12":"N/A"},{"1":"OAS1_0205_MR1","2":"M","3":"R","4":"75","5":"4","6":"1","7":"30","8":"0.5","9":"1891","10":"0.716","11":"0.928","12":"N/A"},{"1":"OAS1_0206_MR1","2":"F","3":"R","4":"78","5":"5","6":"1","7":"30","8":"0.0","9":"1243","10":"0.747","11":"1.412","12":"N/A"},{"1":"OAS1_0207_MR1","2":"M","3":"R","4":"51","5":"5","6":"2","7":"29","8":"0.0","9":"1714","10":"0.819","11":"1.024","12":"N/A"},{"1":"OAS1_0208_MR1","2":"F","3":"R","4":"55","5":"5","6":"1","7":"29","8":"0.0","9":"1368","10":"0.823","11":"1.283","12":"N/A"},{"1":"OAS1_0209_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1328","10":"0.842","11":"1.321","12":"N/A"},{"1":"OAS1_0210_MR1","2":"F","3":"R","4":"73","5":"4","6":"1","7":"28","8":"0.5","9":"1676","10":"0.722","11":"1.047","12":"N/A"},{"1":"OAS1_0211_MR1","2":"M","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1657","10":"0.849","11":"1.059","12":"N/A"},{"1":"OAS1_0212_MR1","2":"F","3":"R","4":"74","5":"3","6":"NA","7":"28","8":"0.0","9":"1614","10":"0.697","11":"1.087","12":"N/A"},{"1":"OAS1_0213_MR1","2":"F","3":"R","4":"48","5":"NA","6":"NA","7":"NA","8":"NA","9":"1332","10":"0.801","11":"1.318","12":"N/A"},{"1":"OAS1_0214_MR1","2":"M","3":"R","4":"18","5":"NA","6":"NA","7":"NA","8":"NA","9":"1854","10":"0.870","11":"0.947","12":"N/A"},{"1":"OAS1_0216_MR1","2":"F","3":"R","4":"71","5":"4","6":"3","7":"30","8":"0.0","9":"1503","10":"0.792","11":"1.168","12":"N/A"},{"1":"OAS1_0217_MR1","2":"F","3":"R","4":"78","5":"4","6":"3","7":"27","8":"0.5","9":"1393","10":"0.692","11":"1.260","12":"N/A"},{"1":"OAS1_0218_MR1","2":"F","3":"R","4":"26","5":"NA","6":"NA","7":"NA","8":"NA","9":"1291","10":"0.843","11":"1.360","12":"N/A"},{"1":"OAS1_0220_MR1","2":"F","3":"R","4":"75","5":"5","6":"1","7":"30","8":"0.0","9":"1317","10":"0.742","11":"1.332","12":"N/A"},{"1":"OAS1_0221_MR1","2":"F","3":"R","4":"94","5":"5","6":"1","7":"29","8":"0.0","9":"1474","10":"0.696","11":"1.190","12":"N/A"},{"1":"OAS1_0222_MR1","2":"F","3":"R","4":"49","5":"NA","6":"NA","7":"NA","8":"NA","9":"1164","10":"0.805","11":"1.508","12":"N/A"},{"1":"OAS1_0223_MR1","2":"M","3":"R","4":"84","5":"2","6":"NA","7":"20","8":"1.0","9":"1641","10":"0.703","11":"1.070","12":"N/A"},{"1":"OAS1_0224_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1378","10":"0.852","11":"1.274","12":"N/A"},{"1":"OAS1_0226_MR1","2":"M","3":"R","4":"90","5":"1","6":"4","7":"23","8":"0.5","9":"1668","10":"0.644","11":"1.052","12":"N/A"},{"1":"OAS1_0227_MR1","2":"F","3":"R","4":"26","5":"NA","6":"NA","7":"NA","8":"NA","9":"1288","10":"0.777","11":"1.362","12":"N/A"},{"1":"OAS1_0228_MR1","2":"F","3":"R","4":"81","5":"3","6":"2","7":"28","8":"0.0","9":"1486","10":"0.759","11":"1.181","12":"N/A"},{"1":"OAS1_0229_MR1","2":"F","3":"R","4":"55","5":"3","6":"3","7":"30","8":"0.0","9":"1327","10":"0.832","11":"1.323","12":"N/A"},{"1":"OAS1_0230_MR1","2":"F","3":"R","4":"19","5":"NA","6":"NA","7":"NA","8":"NA","9":"1584","10":"0.846","11":"1.108","12":"N/A"},{"1":"OAS1_0231_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1429","10":"0.852","11":"1.228","12":"N/A"},{"1":"OAS1_0232_MR1","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1582","10":"0.857","11":"1.110","12":"N/A"},{"1":"OAS1_0233_MR1","2":"F","3":"R","4":"77","5":"1","6":"4","7":"20","8":"0.5","9":"1376","10":"0.701","11":"1.275","12":"N/A"},{"1":"OAS1_0234_MR1","2":"M","3":"R","4":"75","5":"5","6":"2","7":"29","8":"0.0","9":"1534","10":"0.771","11":"1.144","12":"N/A"},{"1":"OAS1_0235_MR1","2":"M","3":"R","4":"37","5":"NA","6":"NA","7":"NA","8":"NA","9":"1407","10":"0.842","11":"1.247","12":"N/A"},{"1":"OAS1_0236_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1218","10":"0.876","11":"1.441","12":"N/A"},{"1":"OAS1_0237_MR1","2":"F","3":"R","4":"72","5":"2","6":"2","7":"27","8":"0.0","9":"1322","10":"0.764","11":"1.328","12":"N/A"},{"1":"OAS1_0238_MR1","2":"F","3":"R","4":"77","5":"2","6":"3","7":"28","8":"0.5","9":"1484","10":"0.786","11":"1.182","12":"N/A"},{"1":"OAS1_0239_MR1","2":"F","3":"R","4":"29","5":"NA","6":"NA","7":"NA","8":"NA","9":"1439","10":"0.823","11":"1.220","12":"N/A"},{"1":"OAS1_0240_MR1","2":"F","3":"R","4":"74","5":"2","6":"NA","7":"26","8":"0.5","9":"1171","10":"0.736","11":"1.499","12":"N/A"},{"1":"OAS1_0241_MR1","2":"F","3":"R","4":"74","5":"5","6":"2","7":"30","8":"0.0","9":"1400","10":"0.754","11":"1.254","12":"N/A"},{"1":"OAS1_0243_MR1","2":"M","3":"R","4":"64","5":"5","6":"2","7":"22","8":"0.5","9":"1547","10":"0.742","11":"1.134","12":"N/A"},{"1":"OAS1_0244_MR1","2":"F","3":"R","4":"80","5":"4","6":"2","7":"29","8":"0.0","9":"1341","10":"0.737","11":"1.309","12":"N/A"},{"1":"OAS1_0246_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1522","10":"0.841","11":"1.153","12":"N/A"},{"1":"OAS1_0247_MR1","2":"M","3":"R","4":"90","5":"2","6":"3","7":"21","8":"0.5","9":"1307","10":"0.689","11":"1.342","12":"N/A"},{"1":"OAS1_0249_MR1","2":"F","3":"R","4":"28","5":"NA","6":"NA","7":"NA","8":"NA","9":"1217","10":"0.871","11":"1.443","12":"N/A"},{"1":"OAS1_0250_MR1","2":"M","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1500","10":"0.837","11":"1.170","12":"N/A"},{"1":"OAS1_0253_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1751","10":"0.852","11":"1.002","12":"N/A"},{"1":"OAS1_0254_MR1","2":"F","3":"R","4":"85","5":"5","6":"1","7":"29","8":"0.0","9":"1264","10":"0.705","11":"1.388","12":"N/A"},{"1":"OAS1_0255_MR1","2":"F","3":"R","4":"71","5":"5","6":"1","7":"30","8":"0.0","9":"1426","10":"0.737","11":"1.231","12":"N/A"},{"1":"OAS1_0256_MR1","2":"M","3":"R","4":"70","5":"5","6":"1","7":"30","8":"0.0","9":"1660","10":"0.739","11":"1.057","12":"N/A"},{"1":"OAS1_0258_MR1","2":"F","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1516","10":"0.870","11":"1.158","12":"N/A"},{"1":"OAS1_0259_MR1","2":"F","3":"R","4":"78","5":"3","6":"2","7":"29","8":"0.0","9":"1334","10":"0.773","11":"1.316","12":"N/A"},{"1":"OAS1_0260_MR1","2":"M","3":"R","4":"87","5":"2","6":"4","7":"30","8":"0.0","9":"1762","10":"0.719","11":"0.996","12":"N/A"},{"1":"OAS1_0261_MR1","2":"M","3":"R","4":"28","5":"NA","6":"NA","7":"NA","8":"NA","9":"1417","10":"0.845","11":"1.238","12":"N/A"},{"1":"OAS1_0262_MR1","2":"M","3":"R","4":"46","5":"2","6":"3","7":"30","8":"0.0","9":"1604","10":"0.784","11":"1.094","12":"N/A"},{"1":"OAS1_0263_MR1","2":"M","3":"R","4":"79","5":"4","6":"1","7":"30","8":"0.5","9":"1722","10":"0.709","11":"1.019","12":"N/A"},{"1":"OAS1_0264_MR1","2":"M","3":"R","4":"24","5":"NA","6":"NA","7":"NA","8":"NA","9":"1591","10":"0.849","11":"1.103","12":"N/A"},{"1":"OAS1_0265_MR1","2":"F","3":"R","4":"54","5":"NA","6":"NA","7":"NA","8":"NA","9":"1410","10":"0.813","11":"1.245","12":"N/A"},{"1":"OAS1_0266_MR1","2":"M","3":"R","4":"51","5":"5","6":"1","7":"30","8":"0.0","9":"1793","10":"0.834","11":"0.979","12":"N/A"},{"1":"OAS1_0267_MR1","2":"M","3":"R","4":"80","5":"5","6":"2","7":"28","8":"0.5","9":"1506","10":"0.679","11":"1.166","12":"N/A"},{"1":"OAS1_0268_MR1","2":"M","3":"R","4":"78","5":"2","6":"3","7":"23","8":"1.0","9":"1491","10":"0.715","11":"1.177","12":"N/A"},{"1":"OAS1_0269_MR1","2":"F","3":"R","4":"72","5":"1","6":"4","7":"21","8":"1.0","9":"1489","10":"0.683","11":"1.179","12":"N/A"},{"1":"OAS1_0270_MR1","2":"F","3":"R","4":"93","5":"3","6":"2","7":"30","8":"0.0","9":"1272","10":"0.703","11":"1.380","12":"N/A"},{"1":"OAS1_0271_MR1","2":"F","3":"R","4":"89","5":"2","6":"4","7":"27","8":"0.0","9":"1329","10":"0.740","11":"1.320","12":"N/A"},{"1":"OAS1_0272_MR1","2":"F","3":"R","4":"75","5":"3","6":"2","7":"26","8":"0.5","9":"1355","10":"0.745","11":"1.296","12":"N/A"},{"1":"OAS1_0273_MR1","2":"F","3":"R","4":"89","5":"1","6":"4","7":"18","8":"0.5","9":"1480","10":"0.676","11":"1.186","12":"N/A"},{"1":"OAS1_0274_MR1","2":"F","3":"R","4":"58","5":"3","6":"3","7":"30","8":"0.0","9":"1373","10":"0.815","11":"1.278","12":"N/A"},{"1":"OAS1_0275_MR1","2":"M","3":"R","4":"50","5":"NA","6":"NA","7":"NA","8":"NA","9":"1635","10":"0.802","11":"1.073","12":"N/A"},{"1":"OAS1_0277_MR1","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1913","10":"0.841","11":"0.917","12":"N/A"},{"1":"OAS1_0278_MR1","2":"F","3":"R","4":"96","5":"5","6":"1","7":"26","8":"1.0","9":"1465","10":"0.684","11":"1.198","12":"N/A"},{"1":"OAS1_0279_MR1","2":"F","3":"R","4":"73","5":"1","6":"4","7":"30","8":"0.0","9":"1475","10":"0.721","11":"1.190","12":"N/A"},{"1":"OAS1_0280_MR1","2":"F","3":"R","4":"78","5":"5","6":"1","7":"30","8":"0.0","9":"1440","10":"0.670","11":"1.219","12":"N/A"},{"1":"OAS1_0281_MR1","2":"M","3":"R","4":"28","5":"NA","6":"NA","7":"NA","8":"NA","9":"1538","10":"0.835","11":"1.141","12":"N/A"},{"1":"OAS1_0282_MR1","2":"F","3":"R","4":"45","5":"NA","6":"NA","7":"NA","8":"NA","9":"1478","10":"0.819","11":"1.188","12":"N/A"},{"1":"OAS1_0283_MR1","2":"F","3":"R","4":"18","5":"NA","6":"NA","7":"NA","8":"NA","9":"1578","10":"0.836","11":"1.112","12":"N/A"},{"1":"OAS1_0284_MR1","2":"F","3":"R","4":"91","5":"5","6":"2","7":"30","8":"0.0","9":"1714","10":"0.746","11":"1.024","12":"N/A"},{"1":"OAS1_0285_MR1","2":"M","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1470","10":"0.843","11":"1.194","12":"N/A"},{"1":"OAS1_0286_MR1","2":"F","3":"R","4":"83","5":"3","6":"2","7":"20","8":"0.5","9":"1476","10":"0.751","11":"1.189","12":"N/A"},{"1":"OAS1_0287_MR1","2":"F","3":"R","4":"78","5":"3","6":"3","7":"21","8":"0.5","9":"1194","10":"0.694","11":"1.470","12":"N/A"},{"1":"OAS1_0288_MR1","2":"M","3":"R","4":"71","5":"2","6":"4","7":"20","8":"0.5","9":"1461","10":"0.727","11":"1.202","12":"N/A"},{"1":"OAS1_0289_MR1","2":"F","3":"R","4":"59","5":"3","6":"2","7":"28","8":"0.0","9":"1334","10":"0.767","11":"1.316","12":"N/A"},{"1":"OAS1_0290_MR1","2":"M","3":"R","4":"83","5":"3","6":"2","7":"26","8":"0.5","9":"1992","10":"0.706","11":"0.881","12":"N/A"},{"1":"OAS1_0291_MR1","2":"F","3":"R","4":"73","5":"2","6":"2","7":"19","8":"1.0","9":"1274","10":"0.745","11":"1.377","12":"N/A"},{"1":"OAS1_0292_MR1","2":"F","3":"R","4":"64","5":"4","6":"2","7":"30","8":"0.0","9":"1415","10":"0.766","11":"1.240","12":"N/A"},{"1":"OAS1_0293_MR1","2":"F","3":"R","4":"69","5":"1","6":"2","7":"26","8":"0.0","9":"1384","10":"0.783","11":"1.268","12":"N/A"},{"1":"OAS1_0294_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1439","10":"0.841","11":"1.220","12":"N/A"},{"1":"OAS1_0295_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1412","10":"0.803","11":"1.243","12":"N/A"},{"1":"OAS1_0296_MR1","2":"F","3":"R","4":"28","5":"NA","6":"NA","7":"NA","8":"NA","9":"1428","10":"0.869","11":"1.229","12":"N/A"},{"1":"OAS1_0298_MR1","2":"F","3":"R","4":"72","5":"4","6":"3","7":"24","8":"0.5","9":"1354","10":"0.738","11":"1.296","12":"N/A"},{"1":"OAS1_0299_MR1","2":"F","3":"R","4":"90","5":"2","6":"3","7":"29","8":"0.0","9":"1475","10":"0.671","11":"1.190","12":"N/A"},{"1":"OAS1_0300_MR1","2":"M","3":"R","4":"68","5":"3","6":"2","7":"30","8":"0.5","9":"1556","10":"0.723","11":"1.128","12":"N/A"},{"1":"OAS1_0301_MR1","2":"F","3":"R","4":"90","5":"3","6":"2","7":"28","8":"0.0","9":"1495","10":"0.761","11":"1.174","12":"N/A"},{"1":"OAS1_0302_MR1","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1570","10":"0.831","11":"1.118","12":"N/A"},{"1":"OAS1_0303_MR1","2":"F","3":"R","4":"67","5":"2","6":"4","7":"30","8":"0.0","9":"1221","10":"0.831","11":"1.438","12":"N/A"},{"1":"OAS1_0304_MR1","2":"M","3":"R","4":"84","5":"3","6":"3","7":"29","8":"0.5","9":"1497","10":"0.693","11":"1.172","12":"N/A"},{"1":"OAS1_0305_MR1","2":"M","3":"R","4":"48","5":"NA","6":"NA","7":"NA","8":"NA","9":"1454","10":"0.850","11":"1.207","12":"N/A"},{"1":"OAS1_0307_MR1","2":"M","3":"R","4":"67","5":"4","6":"2","7":"23","8":"0.5","9":"1399","10":"0.735","11":"1.255","12":"N/A"},{"1":"OAS1_0308_MR1","2":"F","3":"R","4":"78","5":"3","6":"3","7":"15","8":"2.0","9":"1401","10":"0.703","11":"1.253","12":"N/A"},{"1":"OAS1_0309_MR1","2":"F","3":"R","4":"54","5":"2","6":"2","7":"30","8":"0.0","9":"1441","10":"0.786","11":"1.218","12":"N/A"},{"1":"OAS1_0310_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1388","10":"0.863","11":"1.265","12":"N/A"},{"1":"OAS1_0311_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1366","10":"0.830","11":"1.285","12":"N/A"},{"1":"OAS1_0312_MR1","2":"F","3":"R","4":"73","5":"3","6":"NA","7":"26","8":"0.5","9":"1311","10":"0.756","11":"1.339","12":"N/A"},{"1":"OAS1_0313_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1516","10":"0.838","11":"1.158","12":"N/A"},{"1":"OAS1_0314_MR1","2":"M","3":"R","4":"27","5":"NA","6":"NA","7":"NA","8":"NA","9":"1720","10":"0.840","11":"1.020","12":"N/A"},{"1":"OAS1_0315_MR1","2":"M","3":"R","4":"77","5":"5","6":"1","7":"25","8":"0.5","9":"1604","10":"0.773","11":"1.094","12":"N/A"},{"1":"OAS1_0316_MR1","2":"F","3":"R","4":"72","5":"4","6":"2","7":"22","8":"1.0","9":"1493","10":"0.690","11":"1.176","12":"N/A"},{"1":"OAS1_0317_MR1","2":"M","3":"R","4":"86","5":"4","6":"1","7":"26","8":"0.0","9":"1501","10":"0.702","11":"1.169","12":"N/A"},{"1":"OAS1_0318_MR1","2":"M","3":"R","4":"33","5":"NA","6":"NA","7":"NA","8":"NA","9":"1634","10":"0.836","11":"1.074","12":"N/A"},{"1":"OAS1_0319_MR1","2":"M","3":"R","4":"31","5":"NA","6":"NA","7":"NA","8":"NA","9":"1527","10":"0.821","11":"1.149","12":"N/A"},{"1":"OAS1_0321_MR1","2":"M","3":"R","4":"19","5":"NA","6":"NA","7":"NA","8":"NA","9":"1478","10":"0.843","11":"1.187","12":"N/A"},{"1":"OAS1_0322_MR1","2":"F","3":"R","4":"65","5":"3","6":"4","7":"29","8":"0.0","9":"1335","10":"0.776","11":"1.315","12":"N/A"},{"1":"OAS1_0323_MR1","2":"F","3":"R","4":"50","5":"5","6":"1","7":"30","8":"0.0","9":"1370","10":"0.826","11":"1.281","12":"N/A"},{"1":"OAS1_0325_MR1","2":"F","3":"R","4":"27","5":"NA","6":"NA","7":"NA","8":"NA","9":"1422","10":"0.869","11":"1.234","12":"N/A"},{"1":"OAS1_0326_MR1","2":"F","3":"R","4":"73","5":"3","6":"4","7":"29","8":"0.0","9":"1272","10":"0.700","11":"1.380","12":"N/A"},{"1":"OAS1_0327_MR1","2":"M","3":"R","4":"50","5":"NA","6":"NA","7":"NA","8":"NA","9":"1740","10":"0.794","11":"1.008","12":"N/A"},{"1":"OAS1_0328_MR1","2":"M","3":"R","4":"19","5":"NA","6":"NA","7":"NA","8":"NA","9":"1453","10":"0.878","11":"1.208","12":"N/A"},{"1":"OAS1_0329_MR1","2":"F","3":"R","4":"80","5":"2","6":"3","7":"29","8":"0.5","9":"1209","10":"0.760","11":"1.451","12":"N/A"},{"1":"OAS1_0330_MR1","2":"F","3":"R","4":"80","5":"1","6":"5","7":"27","8":"0.0","9":"1381","10":"0.752","11":"1.270","12":"N/A"},{"1":"OAS1_0331_MR1","2":"F","3":"R","4":"54","5":"NA","6":"NA","7":"NA","8":"NA","9":"1467","10":"0.821","11":"1.196","12":"N/A"},{"1":"OAS1_0332_MR1","2":"M","3":"R","4":"72","5":"1","6":"3","7":"29","8":"0.0","9":"1734","10":"0.762","11":"1.012","12":"N/A"},{"1":"OAS1_0333_MR1","2":"M","3":"R","4":"26","5":"NA","6":"NA","7":"NA","8":"NA","9":"1607","10":"0.850","11":"1.092","12":"N/A"},{"1":"OAS1_0335_MR1","2":"F","3":"R","4":"80","5":"1","6":"4","7":"27","8":"0.5","9":"1654","10":"0.678","11":"1.061","12":"N/A"},{"1":"OAS1_0336_MR1","2":"F","3":"R","4":"41","5":"NA","6":"NA","7":"NA","8":"NA","9":"1528","10":"0.852","11":"1.149","12":"N/A"},{"1":"OAS1_0337_MR1","2":"M","3":"R","4":"81","5":"1","6":"4","7":"28","8":"0.0","9":"1750","10":"0.676","11":"1.003","12":"N/A"},{"1":"OAS1_0338_MR1","2":"M","3":"R","4":"77","5":"4","6":"1","7":"29","8":"0.0","9":"1818","10":"0.736","11":"0.965","12":"N/A"},{"1":"OAS1_0339_MR1","2":"F","3":"R","4":"79","5":"2","6":"NA","7":"24","8":"0.5","9":"1211","10":"0.694","11":"1.449","12":"N/A"},{"1":"OAS1_0340_MR1","2":"M","3":"R","4":"19","5":"NA","6":"NA","7":"NA","8":"NA","9":"1650","10":"0.853","11":"1.063","12":"N/A"},{"1":"OAS1_0341_MR1","2":"F","3":"R","4":"71","5":"2","6":"4","7":"30","8":"0.0","9":"1479","10":"0.772","11":"1.187","12":"N/A"},{"1":"OAS1_0342_MR1","2":"F","3":"R","4":"88","5":"2","6":"3","7":"28","8":"0.0","9":"1370","10":"0.765","11":"1.281","12":"N/A"},{"1":"OAS1_0343_MR1","2":"M","3":"R","4":"68","5":"3","6":"3","7":"30","8":"0.0","9":"1441","10":"0.811","11":"1.217","12":"N/A"},{"1":"OAS1_0344_MR1","2":"M","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1510","10":"0.851","11":"1.163","12":"N/A"},{"1":"OAS1_0345_MR1","2":"F","3":"R","4":"54","5":"4","6":"2","7":"30","8":"0.0","9":"1389","10":"0.831","11":"1.264","12":"N/A"},{"1":"OAS1_0346_MR1","2":"M","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1485","10":"0.843","11":"1.181","12":"N/A"},{"1":"OAS1_0348_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1473","10":"0.841","11":"1.191","12":"N/A"},{"1":"OAS1_0349_MR1","2":"F","3":"R","4":"43","5":"NA","6":"NA","7":"NA","8":"NA","9":"1227","10":"0.858","11":"1.430","12":"N/A"},{"1":"OAS1_0350_MR1","2":"M","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1577","10":"0.869","11":"1.113","12":"N/A"},{"1":"OAS1_0351_MR1","2":"M","3":"R","4":"86","5":"1","6":"4","7":"15","8":"2.0","9":"1512","10":"0.665","11":"1.161","12":"N/A"},{"1":"OAS1_0352_MR1","2":"F","3":"R","4":"81","5":"5","6":"2","7":"26","8":"0.5","9":"1174","10":"0.743","11":"1.495","12":"N/A"},{"1":"OAS1_0353_MR1","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1680","10":"0.800","11":"1.044","12":"N/A"},{"1":"OAS1_0354_MR1","2":"M","3":"R","4":"74","5":"1","6":"3","7":"26","8":"0.0","9":"1367","10":"0.776","11":"1.284","12":"N/A"},{"1":"OAS1_0355_MR1","2":"F","3":"R","4":"73","5":"4","6":"2","7":"29","8":"0.0","9":"1123","10":"0.790","11":"1.563","12":"N/A"},{"1":"OAS1_0356_MR1","2":"F","3":"R","4":"68","5":"3","6":"2","7":"30","8":"0.0","9":"1506","10":"0.740","11":"1.165","12":"N/A"},{"1":"OAS1_0357_MR1","2":"F","3":"R","4":"55","5":"4","6":"3","7":"30","8":"0.0","9":"1450","10":"0.820","11":"1.210","12":"N/A"},{"1":"OAS1_0358_MR1","2":"M","3":"R","4":"65","5":"3","6":"3","7":"29","8":"0.0","9":"1362","10":"0.839","11":"1.289","12":"N/A"},{"1":"OAS1_0359_MR1","2":"M","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1714","10":"0.864","11":"1.024","12":"N/A"},{"1":"OAS1_0361_MR1","2":"M","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1485","10":"0.842","11":"1.182","12":"N/A"},{"1":"OAS1_0362_MR1","2":"F","3":"R","4":"63","5":"3","6":"NA","7":"14","8":"0.5","9":"1439","10":"0.716","11":"1.219","12":"N/A"},{"1":"OAS1_0363_MR1","2":"M","3":"R","4":"87","5":"4","6":"2","7":"30","8":"0.0","9":"1398","10":"0.702","11":"1.255","12":"N/A"},{"1":"OAS1_0365_MR1","2":"M","3":"R","4":"74","5":"5","6":"2","7":"30","8":"0.0","9":"1806","10":"0.754","11":"0.972","12":"N/A"},{"1":"OAS1_0366_MR1","2":"F","3":"R","4":"45","5":"5","6":"2","7":"29","8":"0.0","9":"1549","10":"0.813","11":"1.133","12":"N/A"},{"1":"OAS1_0367_MR1","2":"F","3":"R","4":"46","5":"2","6":"2","7":"28","8":"0.0","9":"1161","10":"0.841","11":"1.511","12":"N/A"},{"1":"OAS1_0368_MR1","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1572","10":"0.856","11":"1.116","12":"N/A"},{"1":"OAS1_0369_MR1","2":"F","3":"R","4":"73","5":"4","6":"1","7":"28","8":"0.0","9":"1295","10":"0.772","11":"1.356","12":"N/A"},{"1":"OAS1_0370_MR1","2":"M","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1734","10":"0.847","11":"1.012","12":"N/A"},{"1":"OAS1_0371_MR1","2":"F","3":"R","4":"70","5":"3","6":"4","7":"30","8":"0.0","9":"1361","10":"0.783","11":"1.290","12":"N/A"},{"1":"OAS1_0372_MR1","2":"M","3":"R","4":"59","5":"3","6":"2","7":"29","8":"0.0","9":"1596","10":"0.817","11":"1.100","12":"N/A"},{"1":"OAS1_0373_MR1","2":"F","3":"R","4":"80","5":"3","6":"2","7":"20","8":"1.0","9":"1732","10":"0.692","11":"1.013","12":"N/A"},{"1":"OAS1_0374_MR1","2":"F","3":"R","4":"73","5":"3","6":"3","7":"29","8":"0.5","9":"1238","10":"0.760","11":"1.418","12":"N/A"},{"1":"OAS1_0375_MR1","2":"M","3":"R","4":"46","5":"NA","6":"NA","7":"NA","8":"NA","9":"1617","10":"0.775","11":"1.086","12":"N/A"},{"1":"OAS1_0376_MR1","2":"M","3":"R","4":"31","5":"NA","6":"NA","7":"NA","8":"NA","9":"1579","10":"0.817","11":"1.111","12":"N/A"},{"1":"OAS1_0377_MR1","2":"M","3":"R","4":"25","5":"NA","6":"NA","7":"NA","8":"NA","9":"1567","10":"0.831","11":"1.120","12":"N/A"},{"1":"OAS1_0378_MR1","2":"F","3":"R","4":"58","5":"2","6":"2","7":"30","8":"0.0","9":"1418","10":"0.821","11":"1.238","12":"N/A"},{"1":"OAS1_0379_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1255","10":"0.866","11":"1.398","12":"N/A"},{"1":"OAS1_0380_MR1","2":"F","3":"R","4":"83","5":"1","6":"5","7":"18","8":"0.5","9":"1313","10":"0.705","11":"1.337","12":"N/A"},{"1":"OAS1_0381_MR1","2":"M","3":"R","4":"59","5":"4","6":"2","7":"29","8":"0.0","9":"1795","10":"0.809","11":"0.978","12":"N/A"},{"1":"OAS1_0382_MR1","2":"F","3":"R","4":"67","5":"4","6":"NA","7":"15","8":"1.0","9":"1288","10":"0.763","11":"1.362","12":"N/A"},{"1":"OAS1_0383_MR1","2":"M","3":"R","4":"58","5":"NA","6":"NA","7":"NA","8":"NA","9":"1590","10":"0.746","11":"1.104","12":"N/A"},{"1":"OAS1_0384_MR1","2":"F","3":"R","4":"38","5":"NA","6":"NA","7":"NA","8":"NA","9":"1562","10":"0.844","11":"1.123","12":"N/A"},{"1":"OAS1_0385_MR1","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1643","10":"0.841","11":"1.068","12":"N/A"},{"1":"OAS1_0386_MR1","2":"F","3":"R","4":"26","5":"NA","6":"NA","7":"NA","8":"NA","9":"1490","10":"0.838","11":"1.178","12":"N/A"},{"1":"OAS1_0387_MR1","2":"F","3":"R","4":"26","5":"NA","6":"NA","7":"NA","8":"NA","9":"1149","10":"0.851","11":"1.527","12":"N/A"},{"1":"OAS1_0388_MR1","2":"F","3":"R","4":"77","5":"2","6":"4","7":"22","8":"1.0","9":"1350","10":"0.736","11":"1.300","12":"N/A"},{"1":"OAS1_0389_MR1","2":"M","3":"R","4":"55","5":"NA","6":"NA","7":"NA","8":"NA","9":"1678","10":"0.782","11":"1.046","12":"N/A"},{"1":"OAS1_0390_MR1","2":"M","3":"R","4":"69","5":"2","6":"2","7":"24","8":"0.5","9":"1480","10":"0.794","11":"1.186","12":"N/A"},{"1":"OAS1_0392_MR1","2":"F","3":"R","4":"24","5":"NA","6":"NA","7":"NA","8":"NA","9":"1441","10":"0.848","11":"1.218","12":"N/A"},{"1":"OAS1_0394_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1343","10":"0.847","11":"1.307","12":"N/A"},{"1":"OAS1_0395_MR1","2":"F","3":"R","4":"26","5":"NA","6":"NA","7":"NA","8":"NA","9":"1295","10":"0.834","11":"1.356","12":"N/A"},{"1":"OAS1_0396_MR1","2":"M","3":"R","4":"25","5":"NA","6":"NA","7":"NA","8":"NA","9":"1674","10":"0.832","11":"1.048","12":"N/A"},{"1":"OAS1_0397_MR1","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1265","10":"0.846","11":"1.387","12":"N/A"},{"1":"OAS1_0398_MR1","2":"M","3":"R","4":"71","5":"5","6":"1","7":"30","8":"0.0","9":"1769","10":"0.716","11":"0.992","12":"N/A"},{"1":"OAS1_0399_MR1","2":"M","3":"R","4":"78","5":"2","6":"NA","7":"29","8":"1.0","9":"1569","10":"0.706","11":"1.119","12":"N/A"},{"1":"OAS1_0400_MR1","2":"F","3":"R","4":"92","5":"5","6":"1","7":"25","8":"0.5","9":"1774","10":"0.644","11":"0.989","12":"N/A"},{"1":"OAS1_0401_MR1","2":"F","3":"R","4":"54","5":"4","6":"3","7":"29","8":"0.0","9":"1287","10":"0.827","11":"1.364","12":"N/A"},{"1":"OAS1_0402_MR1","2":"F","3":"R","4":"76","5":"3","6":"2","7":"30","8":"0.5","9":"1350","10":"0.763","11":"1.300","12":"N/A"},{"1":"OAS1_0403_MR1","2":"M","3":"R","4":"19","5":"NA","6":"NA","7":"NA","8":"NA","9":"1592","10":"0.833","11":"1.102","12":"N/A"},{"1":"OAS1_0404_MR1","2":"F","3":"R","4":"73","5":"2","6":"2","7":"29","8":"0.0","9":"1465","10":"0.776","11":"1.198","12":"N/A"},{"1":"OAS1_0405_MR1","2":"M","3":"R","4":"77","5":"5","6":"1","7":"23","8":"1.0","9":"1713","10":"0.761","11":"1.024","12":"N/A"},{"1":"OAS1_0406_MR1","2":"F","3":"R","4":"25","5":"NA","6":"NA","7":"NA","8":"NA","9":"1346","10":"0.855","11":"1.303","12":"N/A"},{"1":"OAS1_0407_MR1","2":"F","3":"R","4":"55","5":"NA","6":"NA","7":"NA","8":"NA","9":"1434","10":"0.807","11":"1.224","12":"N/A"},{"1":"OAS1_0408_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1518","10":"0.861","11":"1.156","12":"N/A"},{"1":"OAS1_0409_MR1","2":"M","3":"R","4":"34","5":"NA","6":"NA","7":"NA","8":"NA","9":"1569","10":"0.798","11":"1.118","12":"N/A"},{"1":"OAS1_0410_MR1","2":"F","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1507","10":"0.870","11":"1.165","12":"N/A"},{"1":"OAS1_0411_MR1","2":"F","3":"R","4":"71","5":"5","6":"1","7":"29","8":"0.5","9":"1346","10":"0.742","11":"1.304","12":"N/A"},{"1":"OAS1_0413_MR1","2":"F","3":"R","4":"25","5":"NA","6":"NA","7":"NA","8":"NA","9":"1447","10":"0.866","11":"1.213","12":"N/A"},{"1":"OAS1_0415_MR1","2":"F","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1542","10":"0.859","11":"1.138","12":"N/A"},{"1":"OAS1_0416_MR1","2":"F","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1567","10":"0.852","11":"1.120","12":"N/A"},{"1":"OAS1_0417_MR1","2":"F","3":"R","4":"30","5":"NA","6":"NA","7":"NA","8":"NA","9":"1551","10":"0.855","11":"1.132","12":"N/A"},{"1":"OAS1_0418_MR1","2":"M","3":"R","4":"74","5":"5","6":"2","7":"28","8":"0.5","9":"1659","10":"0.747","11":"1.058","12":"N/A"},{"1":"OAS1_0419_MR1","2":"F","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1473","10":"0.862","11":"1.191","12":"N/A"},{"1":"OAS1_0420_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1732","10":"0.848","11":"1.013","12":"N/A"},{"1":"OAS1_0421_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1655","10":"0.847","11":"1.061","12":"N/A"},{"1":"OAS1_0422_MR1","2":"F","3":"R","4":"69","5":"4","6":"3","7":"29","8":"0.0","9":"1380","10":"0.809","11":"1.272","12":"N/A"},{"1":"OAS1_0423_MR1","2":"M","3":"R","4":"75","5":"2","6":"4","7":"28","8":"0.0","9":"1511","10":"0.749","11":"1.162","12":"N/A"},{"1":"OAS1_0424_MR1","2":"M","3":"R","4":"75","5":"4","6":"1","7":"20","8":"1.0","9":"1613","10":"0.715","11":"1.088","12":"N/A"},{"1":"OAS1_0425_MR1","2":"F","3":"R","4":"78","5":"1","6":"4","7":"23","8":"1.0","9":"1461","10":"0.715","11":"1.201","12":"N/A"},{"1":"OAS1_0426_MR1","2":"F","3":"R","4":"82","5":"5","6":"2","7":"29","8":"0.0","9":"1316","10":"0.791","11":"1.334","12":"N/A"},{"1":"OAS1_0428_MR1","2":"F","3":"R","4":"84","5":"4","6":"3","7":"28","8":"0.0","9":"1500","10":"0.751","11":"1.170","12":"N/A"},{"1":"OAS1_0429_MR1","2":"F","3":"R","4":"45","5":"NA","6":"NA","7":"NA","8":"NA","9":"1385","10":"0.808","11":"1.267","12":"N/A"},{"1":"OAS1_0430_MR1","2":"M","3":"R","4":"71","5":"4","6":"1","7":"17","8":"1.0","9":"1562","10":"0.687","11":"1.123","12":"N/A"},{"1":"OAS1_0431_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1405","10":"0.822","11":"1.249","12":"N/A"},{"1":"OAS1_0432_MR1","2":"F","3":"R","4":"72","5":"2","6":"4","7":"26","8":"0.5","9":"1453","10":"0.773","11":"1.208","12":"N/A"},{"1":"OAS1_0433_MR1","2":"M","3":"R","4":"58","5":"4","6":"1","7":"27","8":"0.0","9":"1606","10":"0.779","11":"1.093","12":"N/A"},{"1":"OAS1_0434_MR1","2":"F","3":"R","4":"50","5":"NA","6":"NA","7":"NA","8":"NA","9":"1385","10":"0.819","11":"1.267","12":"N/A"},{"1":"OAS1_0435_MR1","2":"M","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1766","10":"0.820","11":"0.994","12":"N/A"},{"1":"OAS1_0437_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1444","10":"0.853","11":"1.216","12":"N/A"},{"1":"OAS1_0438_MR1","2":"F","3":"R","4":"66","5":"5","6":"2","7":"29","8":"0.0","9":"1191","10":"0.787","11":"1.474","12":"N/A"},{"1":"OAS1_0439_MR1","2":"M","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1438","10":"0.844","11":"1.221","12":"N/A"},{"1":"OAS1_0440_MR1","2":"M","3":"R","4":"86","5":"1","6":"4","7":"27","8":"0.5","9":"1320","10":"0.723","11":"1.329","12":"N/A"},{"1":"OAS1_0441_MR1","2":"M","3":"R","4":"81","5":"5","6":"1","7":"29","8":"0.5","9":"1647","10":"0.721","11":"1.066","12":"N/A"},{"1":"OAS1_0442_MR1","2":"F","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1431","10":"0.847","11":"1.227","12":"N/A"},{"1":"OAS1_0443_MR1","2":"F","3":"R","4":"52","5":"3","6":"3","7":"30","8":"0.0","9":"1431","10":"0.814","11":"1.226","12":"N/A"},{"1":"OAS1_0444_MR1","2":"F","3":"R","4":"30","5":"NA","6":"NA","7":"NA","8":"NA","9":"1250","10":"0.860","11":"1.404","12":"N/A"},{"1":"OAS1_0445_MR1","2":"F","3":"R","4":"90","5":"1","6":"2","7":"29","8":"0.0","9":"1362","10":"0.673","11":"1.289","12":"N/A"},{"1":"OAS1_0446_MR1","2":"F","3":"R","4":"80","5":"2","6":"4","7":"30","8":"0.0","9":"1390","10":"0.748","11":"1.263","12":"N/A"},{"1":"OAS1_0447_MR1","2":"F","3":"R","4":"92","5":"4","6":"1","7":"24","8":"0.5","9":"1388","10":"0.739","11":"1.264","12":"N/A"},{"1":"OAS1_0448_MR1","2":"F","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1524","10":"0.858","11":"1.152","12":"N/A"},{"1":"OAS1_0449_MR1","2":"F","3":"R","4":"71","5":"3","6":"4","7":"29","8":"0.0","9":"1264","10":"0.818","11":"1.388","12":"N/A"},{"1":"OAS1_0450_MR1","2":"M","3":"R","4":"19","5":"NA","6":"NA","7":"NA","8":"NA","9":"1478","10":"0.880","11":"1.188","12":"N/A"},{"1":"OAS1_0451_MR1","2":"M","3":"R","4":"73","5":"5","6":"3","7":"27","8":"0.5","9":"1687","10":"0.728","11":"1.040","12":"N/A"},{"1":"OAS1_0452_MR1","2":"M","3":"R","4":"75","5":"1","6":"4","7":"22","8":"1.0","9":"1656","10":"0.762","11":"1.060","12":"N/A"},{"1":"OAS1_0453_MR1","2":"F","3":"R","4":"70","5":"1","6":"4","7":"29","8":"0.5","9":"1295","10":"0.748","11":"1.355","12":"N/A"},{"1":"OAS1_0454_MR1","2":"F","3":"R","4":"73","5":"3","6":"2","7":"23","8":"0.5","9":"1536","10":"0.730","11":"1.142","12":"N/A"},{"1":"OAS1_0455_MR1","2":"F","3":"R","4":"61","5":"2","6":"4","7":"28","8":"0.0","9":"1354","10":"0.825","11":"1.297","12":"N/A"},{"1":"OAS1_0456_MR1","2":"M","3":"R","4":"61","5":"5","6":"2","7":"30","8":"0.0","9":"1637","10":"0.780","11":"1.072","12":"N/A"},{"1":"OAS1_0457_MR1","2":"F","3":"R","4":"62","5":"3","6":"3","7":"26","8":"0.0","9":"1372","10":"0.766","11":"1.279","12":"N/A"},{"1":"OAS1_0061_MR2","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1757","10":"0.845","11":"0.999","12":"1"},{"1":"OAS1_0080_MR2","2":"F","3":"R","4":"25","5":"NA","6":"NA","7":"NA","8":"NA","9":"1605","10":"0.841","11":"1.093","12":"20"},{"1":"OAS1_0092_MR2","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1457","10":"0.835","11":"1.205","12":"5"},{"1":"OAS1_0101_MR2","2":"M","3":"R","4":"29","5":"NA","6":"NA","7":"NA","8":"NA","9":"1501","10":"0.835","11":"1.169","12":"64"},{"1":"OAS1_0111_MR2","2":"M","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1714","10":"0.861","11":"1.024","12":"2"},{"1":"OAS1_0117_MR2","2":"M","3":"R","4":"25","5":"NA","6":"NA","7":"NA","8":"NA","9":"1753","10":"0.782","11":"1.001","12":"5"},{"1":"OAS1_0145_MR2","2":"M","3":"R","4":"34","5":"NA","6":"NA","7":"NA","8":"NA","9":"1654","10":"0.832","11":"1.061","12":"10"},{"1":"OAS1_0150_MR2","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1506","10":"0.876","11":"1.165","12":"1"},{"1":"OAS1_0156_MR2","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1577","10":"0.832","11":"1.113","12":"12"},{"1":"OAS1_0191_MR2","2":"F","3":"R","4":"21","5":"NA","6":"NA","7":"NA","8":"NA","9":"1416","10":"0.837","11":"1.239","12":"28"},{"1":"OAS1_0202_MR2","2":"F","3":"R","4":"23","5":"NA","6":"NA","7":"NA","8":"NA","9":"1548","10":"0.861","11":"1.134","12":"21"},{"1":"OAS1_0230_MR2","2":"F","3":"R","4":"19","5":"NA","6":"NA","7":"NA","8":"NA","9":"1577","10":"0.849","11":"1.113","12":"24"},{"1":"OAS1_0236_MR2","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1222","10":"0.872","11":"1.436","12":"3"},{"1":"OAS1_0239_MR2","2":"F","3":"R","4":"29","5":"NA","6":"NA","7":"NA","8":"NA","9":"1438","10":"0.822","11":"1.221","12":"40"},{"1":"OAS1_0249_MR2","2":"F","3":"R","4":"28","5":"NA","6":"NA","7":"NA","8":"NA","9":"1215","10":"0.865","11":"1.444","12":"3"},{"1":"OAS1_0285_MR2","2":"M","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1469","10":"0.847","11":"1.195","12":"2"},{"1":"OAS1_0353_MR2","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1684","10":"0.790","11":"1.042","12":"40"},{"1":"OAS1_0368_MR2","2":"M","3":"R","4":"22","5":"NA","6":"NA","7":"NA","8":"NA","9":"1580","10":"0.856","11":"1.111","12":"89"},{"1":"OAS1_0379_MR2","2":"F","3":"R","4":"20","5":"NA","6":"NA","7":"NA","8":"NA","9":"1262","10":"0.861","11":"1.390","12":"2"},{"1":"OAS1_0395_MR2","2":"F","3":"R","4":"26","5":"NA","6":"NA","7":"NA","8":"NA","9":"1283","10":"0.834","11":"1.368","12":"39"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<ol start="2" type="1">
+<li>Recode <code>CDR</code> into binary classes. Drop <code>Delay</code> (NA only), <code>Hand</code> (only “M”) and <code>ID</code>. Rename <code>M/F</code> so it does not contain special characters.</li>
+</ol>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+table(oasis$CDR)</code></pre>
+<pre><code>
+  0 0.5   1   2 
+135  70  28   2 </code></pre>
+<pre class="r"><code>
+cdr_classes &lt;- factor(c(&quot;no dimentia&quot;, &quot;dimentia&quot;))
+oasis &lt;- oasis %&gt;% filter(., complete.cases(.))
+oasis &lt;- oasis %&gt;%
+  mutate(CDRc = if_else(CDR == 0, cdr_classes[1], cdr_classes[2])) %&gt;%
+  select(-CDR, -Delay, -Hand, -ID) %&gt;% 
+  rename(sex = `M/F`)
+table(oasis$CDRc)</code></pre>
+<pre><code>
+   dimentia no dimentia 
+         83         133 </code></pre>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+write_csv(oasis, here(&quot;data&quot;, &quot;clean&quot;, &quot;oasis.csv&quot;))</code></pre>
+</div>
+<ol start="3" type="1">
+<li>Fit <code>knn</code> over <code>k = 3,5,7,9,11</code>.</li>
+</ol>
+<p>Originally the task was to evaluate the performance (accuracy) on a hold out, then again using the same holdout to compare different models. However here 10 folds 10 repeats stratified cross validation is used for the hyperparameter and a 1/4 holdout for model comparisen. Both stratified. This should give a unbiased estimate.</p>
+<p>The following code implements the spliting and crossvalidation (and sets a seed for reproducibility).</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+set.seed(020719)
+split &lt;- initial_split(oasis, 3/4, &quot;CDRc&quot;)
+training &lt;- training(split)
+assessment &lt;- assessment(split)
+
+cv &lt;- rsample::vfold_cv(training, v = 10, repeats = 10, strata = &quot;CDRc&quot;)</code></pre>
+</div>
+<p>We should implement the nearest neighbor algorythm and as the engine the <code>kknn</code> package.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+model &lt;- nearest_neighbor(mode = &quot;classification&quot;, neighbors = varying()) %&gt;%
+  set_engine(&quot;kknn&quot;)</code></pre>
+</div>
+<p>We set above <code>neighbors = varying()</code>, we fill this now and specify how the hyperparameter should look like. From that we build a grid over which to we then tune (aka <code>tune_grid</code>).</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+neighbors &lt;-  neighbors %&gt;%
+  range_set(c(1, 100)) %&gt;%
+  value_set(c(3, 5, 7, 9, 11))
+
+tune_grid &lt;- grid_regular(neighbors, levels = Inf)</code></pre>
+</div>
+<p>Now we bring the tune_grid and the model together.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+model_grid &lt;- gen_model_grid(model, tune_grid)</code></pre>
+</div>
+<p>Till now we have not specified what we want to predict from which predictors (which roles the variables have). Often we also want to somehow transform the variables, here we do dummy coding of nominal variables.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+recipe &lt;- recipe(training) %&gt;% 
+  update_role(CDRc, new_role = &quot;outcome&quot;) %&gt;% 
+  update_role(-all_outcomes(), new_role = &quot;predictor&quot;) %&gt;% 
+  step_dummy(all_nominal(), -all_outcomes())</code></pre>
+</div>
+<p>The recipe relates to the data, so we need to apply it to all splits of the data.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+data_grid &lt;- gen_data_grid(cv, recipe)</code></pre>
+</div>
+<p>Now we bring the <code>data_grid</code> (recipes + sets) and the <code>model_grid</code> (model + hyperparamter). We want that every model is fit to every data combination. So a full cross.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+params &lt;- crossing(model_grid, data_grid)</code></pre>
+</div>
+<p>Now we can fit the specified models and make predictions on the unseen data. On that bases we can evaluate the models.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+evaluations &lt;- fit_params(params)</code></pre>
+</div>
+<p>Now we can evaluate how well model have performed e.g. accuracy or other measures.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+hyperparameter &lt;- bind_rows(evaluations$grids)
+accuracy &lt;- evaluations %&gt;%
+  mutate(!!!hyperparameter) %&gt;% 
+  unnest(predictions) %&gt;% 
+  mutate(neighbors = as.factor(neighbors)) %&gt;% 
+  group_by(id, id2, neighbors) %&gt;% 
+  accuracy(truth, estimate = .pred_class)</code></pre>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+acc_plot &lt;- accuracy %&gt;% 
+  ggplot(aes(neighbors, .estimate, group = neighbors))
+
+acc_plot + geom_boxplot()</code></pre>
+<p><img src="knn_files/figure-html5/unnamed-chunk-12-1.png" width="624" /></p>
+<pre class="r"><code>
+acc_plot +
+  geom_violin() + 
+  geom_boxplot(width = .1) +
+  coord_flip() +
+  NULL</code></pre>
+<p><img src="knn_files/figure-html5/unnamed-chunk-12-2.png" width="624" /></p>
+</div>
+<h1 id="task-2">Task 2</h1>
+<p>Fit the dataset on fewer predictors (Age, Educ, MMSE).</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+recipe_short &lt;- recipe(training) %&gt;% 
+  update_role(CDRc, new_role = &quot;outcome&quot;) %&gt;% 
+  update_role(Age, Educ, MMSE, new_role = &quot;predictor&quot;) %&gt;% 
+  step_dummy(all_nominal(), -all_outcomes())
+
+data_grid &lt;- gen_data_grid(cv, list(long = recipe, short = recipe_short))
+
+params &lt;- crossing(model_grid, data_grid)
+
+evaluations &lt;- fit_params(params)
+
+hyperparameter &lt;- bind_rows(evaluations$grids)
+accuracy &lt;- evaluations %&gt;%
+  mutate(!!!hyperparameter) %&gt;% 
+  unnest(predictions) %&gt;% 
+  group_by(id, id2, neighbors, id_recipe) %&gt;% 
+  accuracy(truth, estimate = .pred_class)
+
+accuracy %&gt;% 
+  ggplot(aes(as.factor(neighbors), .estimate, group = neighbors)) +
+  geom_boxplot(alpha = .1) +
+  coord_flip() +
+  facet_wrap(~id_recipe, ncol = 1) +
+  theme() +
+  NULL</code></pre>
+<p><img src="knn_files/figure-html5/unnamed-chunk-13-1.png" width="624" /></p>
+<pre class="r"><code>
+accuracy %&gt;% 
+  group_by(neighbors, id_recipe) %&gt;% 
+  summarise(acc = mean(.estimate)) %&gt;% 
+  spread(id_recipe, acc) %&gt;% 
+  mutate(eq = map2_lgl(long, short, identical))</code></pre>
+<pre><code>
+# A tibble: 5 x 4
+# Groups:   neighbors [5]
+  neighbors  long short eq   
+      &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;lgl&gt;
+1         3 0.770 0.752 FALSE
+2         5 0.770 0.786 FALSE
+3         7 0.758 0.783 FALSE
+4         9 0.771 0.798 FALSE
+5        11 0.781 0.798 FALSE</code></pre>
+</div>
+<h1 id="task-3">Task 3</h1>
+<p>Fit the dataset on standaridized variables.</p>
+<p>In the seminar we were given a allready standardized dataset, however estimating the mean and variance, means we estimate things we do not account for in the cross validation. If we define the standardizing inside the <code>recipe</code> we account for that, because it is inside the cross validation.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+recipe_long_std &lt;- recipe %&gt;% 
+  step_center(all_predictors()) %&gt;% 
+  step_scale(all_predictors())
+
+recipe_short_std &lt;- recipe_short %&gt;% 
+  step_center(all_predictors()) %&gt;% 
+  step_scale(all_predictors())
+
+data_grid &lt;- gen_data_grid(cv, list(unstd_long = recipe,
+                                    unstd_short = recipe_short,
+                                    std_long = recipe_long_std,
+                                    std_short = recipe_short_std))
+
+params &lt;- crossing(model_grid, data_grid)
+
+evaluations &lt;- fit_params(params)
+
+hyperparameter &lt;- bind_rows(evaluations$grids)
+evaluations &lt;- evaluations %&gt;%
+  mutate(!!!hyperparameter) %&gt;% 
+  unnest(predictions)
+  
+
+accuracy &lt;- evaluations %&gt;% 
+  group_by(id, id2, neighbors, id_recipe) %&gt;% 
+  accuracy(truth, estimate = .pred_class)
+
+accuracy %&gt;% 
+  ggplot(aes(as.factor(neighbors), .estimate, group = neighbors)) +
+  geom_boxplot(alpha = .1) +
+  coord_flip() +
+  facet_wrap(~id_recipe, ncol = 1) +
+  theme() +
+  NULL</code></pre>
+<p><img src="knn_files/figure-html5/unnamed-chunk-14-1.png" width="624" /></p>
+<pre class="r"><code>
+accuracy %&gt;% 
+  group_by(neighbors, id_recipe) %&gt;% 
+  summarise(acc = mean(.estimate)) %&gt;% 
+  spread(id_recipe, acc) </code></pre>
+<pre><code>
+# A tibble: 5 x 5
+# Groups:   neighbors [5]
+  neighbors std_long std_short unstd_long unstd_short
+      &lt;int&gt;    &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;       &lt;dbl&gt;
+1         3    0.770     0.754      0.770       0.752
+2         5    0.770     0.787      0.770       0.786
+3         7    0.758     0.783      0.758       0.783
+4         9    0.771     0.798      0.771       0.798
+5        11    0.781     0.797      0.781       0.798</code></pre>
+</div>
+<h1 id="task-4">Task 4</h1>
+<p>Calculate a Confusion matrix.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+evaluations %&gt;% 
+  group_by(neighbors, id_recipe) %&gt;% 
+  conf_mat(truth, estimate = .pred_class) %&gt;% 
+  filter(id_recipe == &quot;unstd_short&quot;) %&gt;% 
+  pull(conf_mat)</code></pre>
+<pre><code>
+[[1]]
+             Truth
+Prediction    dimentia no dimentia
+  dimentia         427         202
+  no dimentia      203         798
+
+[[2]]
+             Truth
+Prediction    dimentia no dimentia
+  dimentia         423         144
+  no dimentia      207         856
+
+[[3]]
+             Truth
+Prediction    dimentia no dimentia
+  dimentia         420         145
+  no dimentia      210         855
+
+[[4]]
+             Truth
+Prediction    dimentia no dimentia
+  dimentia         421         121
+  no dimentia      209         879
+
+[[5]]
+             Truth
+Prediction    dimentia no dimentia
+  dimentia         411         111
+  no dimentia      219         889</code></pre>
+</div>
+<h1 id="task-5">Task 5</h1>
+<p>We were supposed to use the <code>mcnemar.test()</code>, to test the hypothesis that one model is better then the other, however I belive it tests wether or not the models differ in there predictions.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+evaluations %&gt;% 
+  filter(id_recipe == &quot;std_short&quot;, neighbors %in% c(3, 11)) %&gt;% 
+  {split(.$.pred_class, .$neighbors)} %&gt;% 
+  {mcnemar.test(.[[1]], .[[2]])}</code></pre>
+<pre><code>
+    McNemar&#39;s Chi-squared test with continuity correction
+
+data:  .[[1]] and .[[2]]
+McNemar&#39;s chi-squared = 46.655, df = 1, p-value = 8.466e-12</code></pre>
+</div>
+<!--radix_placeholder_article_footer-->
+<!--/radix_placeholder_article_footer-->
+</div>
+
+<div class="d-appendix">
+</div>
+
+
+<!--radix_placeholder_site_after_body-->
+<!--/radix_placeholder_site_after_body-->
+<!--radix_placeholder_appendices-->
+<div class="appendix-bottom"></div>
+<!--/radix_placeholder_appendices-->
+<!--radix_placeholder_navigation_after_body-->
+<!--/radix_placeholder_navigation_after_body-->
+
+</body>
+
+</html>
