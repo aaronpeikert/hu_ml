@@ -99,7 +99,7 @@ params <- crossing(model_grid, data_grid)
 
 Now we can fit the specified models and make predictions on the unseen data. On that bases we can evaluate the models.
 
-```{r}
+```{r, cache=TRUE}
 evaluations <- fit_params(params)
 ```
 
@@ -110,11 +110,12 @@ hyperparameter <- bind_rows(evaluations$grids)
 accuracy <- evaluations %>%
   mutate(!!!hyperparameter) %>% 
   unnest(predictions) %>% 
+  mutate(neighbors = as.factor(neighbors)) %>% 
   group_by(id, id2, neighbors) %>% 
   accuracy(truth, estimate = .pred_class)
 ```
 
-```{r}
+```{r, layout = "l-body-outset"}
 acc_plot <- accuracy %>% 
   ggplot(aes(neighbors, .estimate, group = neighbors))
 
@@ -127,16 +128,17 @@ acc_plot +
   NULL
 ```
 
-3. Fit the dataset on standaridized variables.
+# Task 2
 
-In the seminar we were given a allready standardized dataset, however estimating the mean an variance, means we estimate things we do not account for in the cross validation. If we define the standardizing inside the `recipe` we account for that, because it is inside the cross validation.
+Fit the dataset on fewer predictors (Age, Educ, MMSE).
 
-```{r}
-recipe_std <- recipe %>% 
-  step_center(all_predictors()) %>% 
-  step_scale(all_predictors())
+```{r, cache=TRUE, layout = "l-body-outset"}
+recipe_short <- recipe(training) %>% 
+  update_role(CDRc, new_role = "outcome") %>% 
+  update_role(Age, Educ, MMSE, new_role = "predictor") %>% 
+  step_dummy(all_nominal(), -all_outcomes())
 
-data_grid <- gen_data_grid(cv, list(unstd = recipe, std = recipe_std))
+data_grid <- gen_data_grid(cv, list(long = recipe, short = recipe_short))
 
 params <- crossing(model_grid, data_grid)
 
@@ -150,11 +152,89 @@ accuracy <- evaluations %>%
   accuracy(truth, estimate = .pred_class)
 
 accuracy %>% 
-  ggplot(aes(neighbors, .estimate, group = neighbors)) +
-  geom_jitter() + 
+  ggplot(aes(as.factor(neighbors), .estimate, group = neighbors)) +
   geom_boxplot(alpha = .1) +
   coord_flip() +
   facet_wrap(~id_recipe, ncol = 1) +
+  theme() +
   NULL
+
+accuracy %>% 
+  group_by(neighbors, id_recipe) %>% 
+  summarise(acc = mean(.estimate)) %>% 
+  spread(id_recipe, acc) %>% 
+  mutate(eq = map2_lgl(long, short, identical))
+```
+
+
+# Task 3
+
+Fit the dataset on standaridized variables.
+
+In the seminar we were given a allready standardized dataset, however estimating the mean and variance, means we estimate things we do not account for in the cross validation. If we define the standardizing inside the `recipe` we account for that, because it is inside the cross validation.
+
+```{r, cache=TRUE, layout = "l-body-outset"}
+recipe_long_std <- recipe %>% 
+  step_center(all_predictors()) %>% 
+  step_scale(all_predictors())
+
+recipe_short_std <- recipe_short %>% 
+  step_center(all_predictors()) %>% 
+  step_scale(all_predictors())
+
+data_grid <- gen_data_grid(cv, list(unstd_long = recipe,
+                                    unstd_short = recipe_short,
+                                    std_long = recipe_long_std,
+                                    std_short = recipe_short_std))
+
+params <- crossing(model_grid, data_grid)
+
+evaluations <- fit_params(params)
+
+hyperparameter <- bind_rows(evaluations$grids)
+evaluations <- evaluations %>%
+  mutate(!!!hyperparameter) %>% 
+  unnest(predictions)
+  
+
+accuracy <- evaluations %>% 
+  group_by(id, id2, neighbors, id_recipe) %>% 
+  accuracy(truth, estimate = .pred_class)
+
+accuracy %>% 
+  ggplot(aes(as.factor(neighbors), .estimate, group = neighbors)) +
+  geom_boxplot(alpha = .1) +
+  coord_flip() +
+  facet_wrap(~id_recipe, ncol = 1) +
+  theme() +
+  NULL
+
+accuracy %>% 
+  group_by(neighbors, id_recipe) %>% 
+  summarise(acc = mean(.estimate)) %>% 
+  spread(id_recipe, acc) 
+```
+
+# Task 4
+
+Calculate a Confusion matrix.
+
+```{r}
+evaluations %>% 
+  group_by(neighbors, id_recipe) %>% 
+  conf_mat(truth, estimate = .pred_class) %>% 
+  filter(id_recipe == "unstd_short") %>% 
+  pull(conf_mat)
+```
+
+# Task 5
+
+We were supposed to use the `mcnemar.test()`, to test the hypothesis that one model is better then the other, however I belive it tests wether or not the models differ in there predictions.
+
+```{r}
+evaluations %>% 
+  filter(id_recipe == "std_short", neighbors %in% c(3, 11)) %>% 
+  {split(.$.pred_class, .$neighbors)} %>% 
+  {mcnemar.test(.[[1]], .[[2]])}
 ```
 
