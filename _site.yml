@@ -13,4 +13,6 @@ navbar:
       menu:
         - text: "Linear Model"
           href: lm.html
+        - text: "Nearest Neighbor"
+          href: knn.html
 output: distill::distill_article
